@@ -37,6 +37,8 @@
         .drag-active { border-color: #fbbf24 !important; background-color: #fef3c7 !important; }
         .thumbnail-active { ring-2 ring-navy-900 ring-offset-2; }
         .search-dropdown { max-height: 300px; overflow-y: auto; }
+        .auth-provider-btn { transition: all 0.2s; }
+        .auth-provider-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans antialiased flex flex-col min-h-screen">
@@ -73,9 +75,24 @@
                         <span id="cart-badge" class="absolute -top-2 -right-2 bg-accent-yellow text-navy-900 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
                     </button>
                     
-                    <button onclick="handleAccountClick()" class="text-gray-600 hover:text-navy-700">
-                        <i data-lucide="user" class="w-6 h-6"></i>
-                    </button>
+                    <div class="relative" id="user-menu-container">
+                        <button onclick="toggleUserMenu()" class="flex items-center gap-2 text-gray-600 hover:text-navy-700">
+                            <div id="user-avatar" class="w-8 h-8 rounded-full bg-navy-900 text-white flex items-center justify-center text-sm font-bold hidden"></div>
+                            <i data-lucide="user" class="w-6 h-6" id="user-icon"></i>
+                        </button>
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                            <div id="guest-menu">
+                                <button onclick="router.navigate('login'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Login</button>
+                                <button onclick="router.navigate('register'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign Up</button>
+                            </div>
+                            <div id="user-menu" class="hidden">
+                                <div class="px-4 py-2 text-sm text-gray-500 border-b border-gray-100" id="user-email-display"></div>
+                                <button onclick="router.navigate('profile'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Profile</button>
+                                <button onclick="router.navigate('orders'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Orders</button>
+                                <button onclick="logout(); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Logout</button>
+                            </div>
+                        </div>
+                    </div>
                     
                     <button class="md:hidden text-gray-600" onclick="toggleMobileMenu()">
                         <i data-lucide="menu" class="w-6 h-6"></i>
@@ -89,6 +106,10 @@
                 <button onclick="router.navigate('home'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Home</button>
                 <button onclick="router.navigate('shop'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">Shop</button>
                 <button onclick="router.navigate('about'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-50">About</button>
+                <div id="mobile-user-menu">
+                    <button onclick="router.navigate('login'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">Login</button>
+                    <button onclick="router.navigate('register'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">Sign Up</button>
+                </div>
                 <button id="mobile-admin-btn" onclick="router.navigate('admin'); toggleMobileMenu()" class="hidden w-full text-left px-3 py-2 text-base font-medium text-purple-700 hover:bg-purple-50">Admin Panel</button>
             </div>
         </div>
@@ -117,7 +138,7 @@
                     <p>Total</p>
                     <p id="cart-total">Rs. 0.00</p>
                 </div>
-                <button onclick="router.navigate('checkout'); toggleCart()" class="w-full bg-navy-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-navy-800 transition flex items-center justify-center gap-2">
+                <button onclick="checkoutFromCart()" class="w-full bg-navy-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-navy-800 transition flex items-center justify-center gap-2">
                     <i data-lucide="arrow-right" class="w-5 h-5"></i>
                     Proceed to Checkout
                 </button>
@@ -173,30 +194,13 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Additional Images (Max 4)</label>
                             <div class="grid grid-cols-4 gap-2" id="additional-images-container">
-                                <div id="drop-zone-add-1" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-1').click()">
-                                    <input type="file" id="file-input-add-1" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 1)">
-                                    <div id="upload-placeholder-add-1"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
-                                    <img id="image-preview-add-1" class="hidden w-full h-full object-cover rounded">
-                                    <input type="hidden" id="edit-image-add-1">
-                                </div>
-                                <div id="drop-zone-add-2" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-2').click()">
-                                    <input type="file" id="file-input-add-2" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 2)">
-                                    <div id="upload-placeholder-add-2"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
-                                    <img id="image-preview-add-2" class="hidden w-full h-full object-cover rounded">
-                                    <input type="hidden" id="edit-image-add-2">
-                                </div>
-                                <div id="drop-zone-add-3" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-3').click()">
-                                    <input type="file" id="file-input-add-3" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 3)">
-                                    <div id="upload-placeholder-add-3"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
-                                    <img id="image-preview-add-3" class="hidden w-full h-full object-cover rounded">
-                                    <input type="hidden" id="edit-image-add-3">
-                                </div>
-                                <div id="drop-zone-add-4" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-4').click()">
-                                    <input type="file" id="file-input-add-4" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 4)">
-                                    <div id="upload-placeholder-add-4"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
-                                    <img id="image-preview-add-4" class="hidden w-full h-full object-cover rounded">
-                                    <input type="hidden" id="edit-image-add-4">
-                                </div>
+                                ${[1,2,3,4].map(i => `
+                                <div id="drop-zone-add-${i}" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-${i}').click()">
+                                    <input type="file" id="file-input-add-${i}" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', ${i})">
+                                    <div id="upload-placeholder-add-${i}"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
+                                    <img id="image-preview-add-${i}" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-${i}">
+                                </div>`).join('')}
                             </div>
                         </div>
 
@@ -255,12 +259,23 @@
                         <li class="flex items-center gap-2"><i data-lucide="phone" class="w-5 h-5 text-accent-yellow"></i> +94 71 762 7177</li>
                     </ul>
                 </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Account</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li><button onclick="router.navigate('login')" class="hover:text-accent-yellow transition">Login</button></li>
+                        <li><button onclick="router.navigate('register')" class="hover:text-accent-yellow transition">Register</button></li>
+                        <li><button onclick="router.navigate('orders')" class="hover:text-accent-yellow transition">Track Order</button></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>&copy; 2024 AN7 Study Smart. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
     <script>
-        // Firebase Config - YOUR CREDENTIALS
+        // Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyDDu41W17u-mLwwMyfgsWQm2DtVm254fVc",
             authDomain: "store-c91db.firebaseapp.com",
@@ -284,27 +299,51 @@
         const DELIVERY = { FREE_ITEM_COUNT: 2, CHARGE: 300 };
 
         const store = {
-            users: [],
             currentUser: null,
             isAdmin: false,
             cart: JSON.parse(localStorage.getItem('an7_cart')) || [],
             products: [],
-            orders: []
+            orders: [],
+            userOrders: []
         };
 
-        // Load data from Firebase
+        // Auth State Listener
+        auth.onAuthStateChanged((user) => {
+            store.currentUser = user;
+            updateUserUI();
+            
+            if (user) {
+                // Check if admin
+                if (user.email === ADMIN_CREDENTIALS.email) {
+                    store.isAdmin = true;
+                    document.getElementById('admin-nav-btn')?.classList.remove('hidden');
+                    document.getElementById('mobile-admin-btn')?.classList.remove('hidden');
+                }
+                
+                // Load user orders
+                loadUserOrders(user.uid);
+            } else {
+                store.isAdmin = false;
+                store.userOrders = [];
+                document.getElementById('admin-nav-btn')?.classList.add('hidden');
+                document.getElementById('mobile-admin-btn')?.classList.add('hidden');
+            }
+            
+            lucide.createIcons();
+        });
+
+        // Load products
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 store.products = Object.values(data);
             } else {
-                // Default products if Firebase empty
+                // Default products
                 store.products = [
                     {id: 1, name: "Casio fx-991ES Plus 2nd Edition", price: 4850, originalPrice: 5500, image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80", images: [], badge: "Original", stock: 15, description: "The most popular scientific calculator among Sri Lankan students.", category: "calculator"},
                     {id: 2, name: "Casio fx-991ES Plus (Highcopy)", price: 2850, originalPrice: 3500, image: "https://images.unsplash.com/photo-1587145820266-a5951eebb23d?w=500&q=80", images: [], badge: "Best Value", stock: 8, description: "High-quality A-grade replica with identical functionality.", category: "calculator"},
                     {id: 3, name: "Casio fx-991EX Classwiz", price: 7200, originalPrice: 8500, image: "https://images.unsplash.com/photo-1564466021188-1e1f7337155d?w=500&q=80", images: [], badge: "Premium", stock: 5, description: "Advanced scientific calculator with spreadsheet functionality.", category: "calculator"}
                 ];
-                // Save defaults to Firebase
                 store.products.forEach(p => database.ref('products/' + p.id).set(p));
             }
             if (router.currentRoute === 'shop' || router.currentRoute === 'home' || router.currentRoute === 'admin') {
@@ -312,29 +351,59 @@
             }
         });
 
-        database.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            store.orders = data ? Object.values(data) : [];
-        });
+        function loadUserOrders(userId) {
+            database.ref('orders').orderByChild('userId').equalTo(userId).on('value', (snapshot) => {
+                const data = snapshot.val();
+                store.userOrders = data ? Object.values(data) : [];
+            });
+        }
 
-        auth.onAuthStateChanged((user) => {
-            if (user && user.email === ADMIN_CREDENTIALS.email) {
-                store.currentUser = user;
-                store.isAdmin = true;
-                document.getElementById('admin-nav-btn')?.classList.remove('hidden');
-                document.getElementById('mobile-admin-btn')?.classList.remove('hidden');
+        function updateUserUI() {
+            const user = store.currentUser;
+            const avatar = document.getElementById('user-avatar');
+            const icon = document.getElementById('user-icon');
+            const guestMenu = document.getElementById('guest-menu');
+            const userMenu = document.getElementById('user-menu');
+            const emailDisplay = document.getElementById('user-email-display');
+            const mobileUserMenu = document.getElementById('mobile-user-menu');
+            
+            if (user) {
+                // Show avatar with initials
+                const initials = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+                avatar.textContent = initials;
+                avatar.classList.remove('hidden');
+                icon.classList.add('hidden');
+                
+                guestMenu.classList.add('hidden');
+                userMenu.classList.remove('hidden');
+                emailDisplay.textContent = user.email;
+                
+                // Update mobile menu
+                if (mobileUserMenu) {
+                    mobileUserMenu.innerHTML = `
+                        <button onclick="router.navigate('profile'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">My Profile</button>
+                        <button onclick="router.navigate('orders'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">My Orders</button>
+                        <button onclick="logout(); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-red-600 hover:bg-gray-50">Logout</button>
+                    `;
+                }
             } else {
-                store.isAdmin = false;
-                document.getElementById('admin-nav-btn')?.classList.add('hidden');
-                document.getElementById('mobile-admin-btn')?.classList.add('hidden');
+                avatar.classList.add('hidden');
+                icon.classList.remove('hidden');
+                guestMenu.classList.remove('hidden');
+                userMenu.classList.add('hidden');
+                
+                if (mobileUserMenu) {
+                    mobileUserMenu.innerHTML = `
+                        <button onclick="router.navigate('login'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">Login</button>
+                        <button onclick="router.navigate('register'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">Sign Up</button>
+                    `;
+                }
             }
-            lucide.createIcons();
-        });
+        }
 
         const router = {
             currentRoute: 'home',
             navigate(route, params = {}, skipCheck = false) {
-                // If going to admin, check auth first
                 if (route === 'admin' && !skipCheck && !store.isAdmin) {
                     const app = document.getElementById('app');
                     app.innerHTML = '<div class="min-h-screen flex items-center justify-center"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-900 mx-auto mb-4"></div><p class="text-gray-600">Checking admin access...</p></div></div>';
@@ -366,6 +435,9 @@
                     case 'about': app.appendChild(views.about()); break;
                     case 'admin': app.appendChild(views.admin()); break;
                     case 'login': app.appendChild(views.login()); break;
+                    case 'register': app.appendChild(views.register()); break;
+                    case 'profile': app.appendChild(views.profile()); break;
+                    case 'orders': app.appendChild(views.orders()); break;
                     default: app.appendChild(views.home());
                 }
                 lucide.createIcons();
@@ -520,6 +592,27 @@
                         <div class="grid lg:grid-cols-2 gap-12">
                             <div>
                                 <h1 class="text-3xl font-bold text-navy-900 mb-8">Checkout</h1>
+                                ${!store.currentUser ? `
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                                    <div class="flex items-start gap-3">
+                                        <i data-lucide="alert-circle" class="w-5 h-5 text-yellow-600 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-yellow-900">Guest Checkout</h4>
+                                            <p class="text-sm text-yellow-700">You're checking out as a guest. <button onclick="router.navigate('login')" class="underline font-medium">Login</button> or <button onclick="router.navigate('register')" class="underline font-medium">create an account</button> to track your orders easily.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                ` : `
+                                <div class="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                                    <div class="flex items-start gap-3">
+                                        <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <h4 class="font-bold text-green-900">Welcome back, ${store.currentUser.displayName || store.currentUser.email}!</h4>
+                                            <p class="text-sm text-green-700">Your order will be saved to your account.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                `}
                                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                                     <div class="flex items-start gap-3">
                                         <i data-lucide="truck" class="w-5 h-5 text-blue-600 mt-0.5"></i>
@@ -562,7 +655,7 @@
                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label><input type="text" name="firstName" required class="w-full rounded-lg border-gray-300 border px-3 py-2"></div>
                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Last Name *</label><input type="text" name="lastName" required class="w-full rounded-lg border-gray-300 border px-3 py-2"></div>
                                     </div>
-                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Email *</label><input type="email" name="email" required class="w-full rounded-lg border-gray-300 border px-3 py-2"></div>
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Email *</label><input type="email" name="email" required class="w-full rounded-lg border-gray-300 border px-3 py-2" value="${store.currentUser ? store.currentUser.email : ''}"></div>
                                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label><input type="tel" name="phone" required placeholder="07X XXX XXXX" class="w-full rounded-lg border-gray-300 border px-3 py-2"></div>
                                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Delivery Address *</label><textarea name="address" required rows="3" class="w-full rounded-lg border-gray-300 border px-3 py-2"></textarea></div>
                                     <div>
@@ -609,7 +702,6 @@
                     return document.createElement('div');
                 }
                 
-                // Safe analytics calculation
                 const totalRevenue = store.orders.reduce((sum, o) => {
                     const total = parseFloat(o.total) || 0;
                     return sum + (isFinite(total) ? total : 0);
@@ -668,7 +760,21 @@
                 const div = document.createElement('div');
                 div.innerHTML = `
                     <div class="bg-navy-900 text-white py-24"><div class="max-w-4xl mx-auto px-4 text-center"><h1 class="text-5xl font-display font-bold mb-6">Our Story</h1><p class="text-xl text-gray-300">Study Smart with AN7</p></div></div>
-                    <div class="max-w-4xl mx-auto px-4 py-16"><div class="bg-white rounded-2xl shadow-lg p-8"><h2 class="text-2xl font-bold text-navy-900 mb-4">The Beginning</h2><p class="text-gray-600">AN7 was born in 2022 when I was a 21-year-old engineering student at the University of Peradeniya. What started as selling calculators to friends quickly grew into serving thousands of students across Sri Lanka.</p></div></div>
+                    <div class="max-w-4xl mx-auto px-4 py-16 space-y-8">
+                        <div class="bg-white rounded-2xl shadow-lg p-8">
+                            <h2 class="text-2xl font-bold text-navy-900 mb-4">The Beginning</h2>
+                            <p class="text-gray-600 leading-relaxed">AN7 was born in 2022 when I was a 21-year-old engineering student at the University of Peradeniya. What started as selling calculators to friends quickly grew into serving thousands of students across Sri Lanka.</p>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-lg p-8">
+                            <h2 class="text-2xl font-bold text-navy-900 mb-4">Why Choose Us?</h2>
+                            <ul class="space-y-3 text-gray-600">
+                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> 100% Original Casio Products</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> Islandwide Delivery</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> 1-Year Warranty</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> Student Discounts Available</li>
+                            </ul>
+                        </div>
+                    </div>
                 `;
                 return div;
             },
@@ -678,13 +784,203 @@
                 div.innerHTML = `
                     <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
                         <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
-                            <div class="text-center mb-8"><h1 class="text-3xl font-display font-bold text-navy-900">Admin Login</h1><p class="text-gray-600 mt-2">Enter admin credentials</p></div>
+                            <div class="text-center mb-8">
+                                <h1 class="text-3xl font-display font-bold text-navy-900">Welcome Back</h1>
+                                <p class="text-gray-600 mt-2">Sign in to your account</p>
+                            </div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <button onclick="signInWithGoogle()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                    <span class="font-medium text-gray-700">Continue with Google</span>
+                                </button>
+                                <button onclick="signInWithApple()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                                    <span class="font-medium">Continue with Apple</span>
+                                </button>
+                            </div>
+                            
+                            <div class="relative mb-6">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                                <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or continue with email</span></div>
+                            </div>
+                            
                             <form onsubmit="handleLogin(event)" class="space-y-6">
                                 <div><label class="block text-sm font-medium text-gray-700 mb-2">Email</label><input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
                                 <div><label class="block text-sm font-medium text-gray-700 mb-2">Password</label><input type="password" name="password" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
                                 <button type="submit" class="w-full bg-navy-900 text-white py-3 rounded-lg font-bold hover:bg-navy-800 transition">Sign In</button>
                             </form>
+                            
+                            <p class="mt-6 text-center text-sm text-gray-600">Don't have an account? <button onclick="router.navigate('register')" class="text-navy-900 font-medium hover:underline">Sign up</button></p>
                         </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            register() {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+                        <div class="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
+                            <div class="text-center mb-8">
+                                <h1 class="text-3xl font-display font-bold text-navy-900">Create Account</h1>
+                                <p class="text-gray-600 mt-2">Join AN7 Study Smart</p>
+                            </div>
+                            
+                            <div class="space-y-3 mb-6">
+                                <button onclick="signInWithGoogle()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                                    <span class="font-medium text-gray-700">Continue with Google</span>
+                                </button>
+                                <button onclick="signInWithApple()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+                                    <span class="font-medium">Continue with Apple</span>
+                                </button>
+                            </div>
+                            
+                            <div class="relative mb-6">
+                                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                                <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or register with email</span></div>
+                            </div>
+                            
+                            <form onsubmit="handleRegister(event)" class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-2">First Name</label><input type="text" name="firstName" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
+                                    <div><label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label><input type="text" name="lastName" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
+                                </div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Email</label><input type="email" name="email" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Password</label><input type="password" name="password" required minlength="6" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label><input type="password" name="confirmPassword" required class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 outline-none"></div>
+                                <button type="submit" class="w-full bg-navy-900 text-white py-3 rounded-lg font-bold hover:bg-navy-800 transition">Create Account</button>
+                            </form>
+                            
+                            <p class="mt-6 text-center text-sm text-gray-600">Already have an account? <button onclick="router.navigate('login')" class="text-navy-900 font-medium hover:underline">Sign in</button></p>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            profile() {
+                if (!store.currentUser) {
+                    router.navigate('login');
+                    return document.createElement('div');
+                }
+                const user = store.currentUser;
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="max-w-4xl mx-auto px-4 py-12">
+                        <h1 class="text-3xl font-bold text-navy-900 mb-8">My Profile</h1>
+                        <div class="grid md:grid-cols-3 gap-8">
+                            <div class="md:col-span-1">
+                                <div class="bg-white rounded-2xl shadow-sm p-6 text-center">
+                                    <div class="w-24 h-24 rounded-full bg-navy-900 text-white flex items-center justify-center text-3xl font-bold mx-auto mb-4">
+                                        ${user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase()}
+                                    </div>
+                                    <h2 class="font-bold text-lg text-gray-900">${user.displayName || 'User'}</h2>
+                                    <p class="text-gray-600 text-sm mb-4">${user.email}</p>
+                                    <button onclick="logout()" class="w-full bg-red-50 text-red-600 py-2 rounded-lg font-medium hover:bg-red-100 transition">Logout</button>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                                    <h3 class="font-bold text-lg text-gray-900 mb-4">Account Information</h3>
+                                    <div class="space-y-4">
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div><label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label><input type="text" value="${user.displayName || ''}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50"></div>
+                                            <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value="${user.email}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50"></div>
+                                        </div>
+                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">User ID</label><input type="text" value="${user.uid}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-white rounded-2xl shadow-sm p-6">
+                                    <h3 class="font-bold text-lg text-gray-900 mb-4">Recent Orders</h3>
+                                    ${store.userOrders.length === 0 ? '<p class="text-gray-500">No orders yet. <button onclick="router.navigate(\'shop\')" class="text-navy-900 underline">Start shopping</button></p>' : 
+                                    `<div class="space-y-4">${store.userOrders.slice().reverse().slice(0,5).map(o => `
+                                        <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+                                            <div>
+                                                <p class="font-medium text-navy-900">Order #${o.id}</p>
+                                                <p class="text-sm text-gray-500">${new Date(o.date).toLocaleDateString()}</p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-bold text-navy-900">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</p>
+                                                <span class="text-xs px-2 py-1 rounded-full ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'pending'}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}</div>`}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return div;
+            },
+
+            orders() {
+                const div = document.createElement('div');
+                const ordersToShow = store.currentUser ? store.userOrders : [];
+                
+                div.innerHTML = `
+                    <div class="max-w-4xl mx-auto px-4 py-12">
+                        <h1 class="text-3xl font-bold text-navy-900 mb-8">My Orders</h1>
+                        ${!store.currentUser ? `
+                        <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+                            <i data-lucide="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                            <h2 class="text-xl font-bold text-gray-900 mb-2">Please login to view your orders</h2>
+                            <p class="text-gray-600 mb-6">Track your orders and view order history</p>
+                            <button onclick="router.navigate('login')" class="bg-navy-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-navy-800 transition">Login</button>
+                        </div>
+                        ` : ordersToShow.length === 0 ? `
+                        <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
+                            <i data-lucide="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
+                            <h2 class="text-xl font-bold text-gray-900 mb-2">No orders yet</h2>
+                            <p class="text-gray-600 mb-6">You haven't placed any orders yet.</p>
+                            <button onclick="router.navigate('shop')" class="bg-navy-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-navy-800 transition">Start Shopping</button>
+                        </div>
+                        ` : `
+                        <div class="space-y-6">
+                            ${ordersToShow.slice().reverse().map(o => `
+                            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Order ID</p>
+                                        <p class="font-bold text-navy-900 text-lg">#${o.id}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : o.status === 'shipped' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'Processing'}</span>
+                                    </div>
+                                </div>
+                                <div class="border-t border-b border-gray-100 py-4 mb-4">
+                                    <div class="space-y-2">
+                                        ${o.items.map(item => `
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center gap-3">
+                                                <img src="${item.image}" class="w-12 h-12 rounded object-cover">
+                                                <div>
+                                                    <p class="font-medium text-sm">${item.name}</p>
+                                                    <p class="text-xs text-gray-500">Qty: ${item.quantity}</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-sm font-medium">Rs. ${(item.price * item.quantity).toLocaleString()}</span>
+                                        </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div class="text-sm text-gray-500">
+                                        <p>Ordered on ${new Date(o.date).toLocaleDateString()}</p>
+                                        <p>Payment: ${(o.paymentMethod || 'COD').toUpperCase()}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-gray-500">Total</p>
+                                        <p class="text-xl font-bold text-navy-900">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            `).join('')}
+                        </div>
+                        `}
                     </div>
                 `;
                 return div;
@@ -716,6 +1012,107 @@
             }
         };
 
+        // Auth Functions
+        function toggleUserMenu() {
+            const menu = document.getElementById('user-dropdown');
+            menu.classList.toggle('hidden');
+        }
+
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    showToast('Welcome ' + result.user.displayName + '!');
+                    router.navigate('home');
+                })
+                .catch((error) => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function signInWithApple() {
+            const provider = new firebase.auth.OAuthProvider('apple.com');
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    showToast('Welcome!');
+                    router.navigate('home');
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/popup-closed-by-user') {
+                        showToast('Sign in cancelled', 'error');
+                    } else {
+                        showToast('Apple Sign In coming soon or check configuration', 'error');
+                    }
+                });
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmPassword');
+            const firstName = formData.get('firstName');
+            const lastName = formData.get('lastName');
+
+            if (password !== confirmPassword) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    return userCredential.user.updateProfile({
+                        displayName: firstName + ' ' + lastName
+                    });
+                })
+                .then(() => {
+                    showToast('Account created successfully!');
+                    router.navigate('home');
+                })
+                .catch((error) => {
+                    showToast(error.message, 'error');
+                });
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email').toLowerCase().trim();
+            const password = formData.get('password');
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then(() => {
+                    showToast('Welcome back!');
+                    if (email === ADMIN_CREDENTIALS.email) {
+                        router.navigate('admin');
+                    } else {
+                        router.navigate('home');
+                    }
+                })
+                .catch((error) => {
+                    showToast('Invalid email or password', 'error');
+                });
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                showToast('Logged out successfully');
+                router.navigate('home');
+            });
+        }
+
+        // Cart Functions
+        function checkoutFromCart() {
+            if (store.cart.length === 0) {
+                showToast('Your cart is empty', 'error');
+                return;
+            }
+            toggleCart();
+            router.navigate('checkout');
+        }
+
+        // Search Functions
         function handleSearch(query) {
             const resultsDiv = document.getElementById('search-results');
             if (!query.trim()) { resultsDiv.classList.add('hidden'); return; }
@@ -791,7 +1188,7 @@
             } else {
                 badge.classList.add('hidden');
                 subtotalEl.textContent = 'Rs. 0.00'; totalEl.textContent = 'Rs. 0.00'; deliveryInfo.innerHTML = '';
-                container.innerHTML = `<div class="text-center text-gray-500 py-12"><i data-lucide="shopping-bag" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>Your cart is empty</p></div>`;
+                container.innerHTML = `<div class="text-center text-gray-500 py-12"><i data-lucide="shopping-bag" class="w-16 h-16 mx-auto mb-4 text-gray-300"></i><p>Your cart is empty</p><button onclick="router.navigate('shop'); toggleCart()" class="mt-4 text-navy-900 font-medium underline">Continue Shopping</button></div>`;
             }
             lucide.createIcons();
         }
@@ -832,6 +1229,7 @@
             
             const orderData = {
                 id: Date.now().toString(),
+                userId: store.currentUser ? store.currentUser.uid : null,
                 customer: `${formData.get('firstName')} ${formData.get('lastName')}`,
                 email: formData.get('email'),
                 phone: formData.get('phone'),
@@ -846,7 +1244,6 @@
                 paymentMethod: paymentMethod
             };
 
-            // Save to Firebase
             database.ref('orders/' + orderData.id).set(orderData);
             
             const items = store.cart.map(i => `${i.name} x${i.quantity}`).join(', ');
@@ -864,36 +1261,7 @@
             window.open(`https://wa.me/94717627177?text=${encodeURIComponent(message)}`, '_blank');
         }
 
-        function handleAccountClick() { if (store.isAdmin) router.navigate('admin'); else router.navigate('login'); }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const email = formData.get('email').toLowerCase();
-            const password = formData.get('password');
-            
-            if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(() => { showToast('Welcome Admin!'); router.navigate('admin'); })
-                    .catch((error) => {
-                        if (error.code === 'auth/user-not-found') {
-                            auth.createUserWithEmailAndPassword(email, password)
-                                .then(() => { showToast('Admin account created!'); router.navigate('admin'); })
-                                .catch(err => showToast(err.message, 'error'));
-                        } else { showToast(error.message, 'error'); }
-                    });
-            } else { showToast('Invalid credentials', 'error'); }
-        }
-
-        function logout() {
-            auth.signOut().then(() => {
-                store.currentUser = null; store.isAdmin = false;
-                document.getElementById('admin-nav-btn')?.classList.add('hidden');
-                document.getElementById('mobile-admin-btn')?.classList.add('hidden');
-                router.navigate('home');
-            });
-        }
-
+        // Admin Functions
         function openProductModal(productId = null) {
             const modal = document.getElementById('product-modal');
             document.getElementById('product-form').reset();
@@ -1006,12 +1374,18 @@
             if (newVal >= 1 && newVal <= parseInt(input.max)) input.value = newVal;
         }
 
-        // Close mobile menu when clicking outside
+        // Close menus when clicking outside
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('mobile-menu');
             const button = document.querySelector('[onclick="toggleMobileMenu()"]');
-            if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !button.contains(e.target)) {
+            if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !button?.contains(e.target)) {
                 menu.classList.add('hidden');
+            }
+            
+            const userMenu = document.getElementById('user-dropdown');
+            const userButton = document.querySelector('[onclick="toggleUserMenu()"]');
+            if (userMenu && !userMenu.classList.contains('hidden') && !userMenu.contains(e.target) && !userButton?.contains(e.target)) {
+                userMenu.classList.add('hidden');
             }
         });
 
