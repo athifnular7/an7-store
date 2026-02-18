@@ -34,9 +34,6 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .gradient-text { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .drag-active { border-color: #fbbf24 !important; background-color: #fef3c7 !important; }
-        .thumbnail-active { ring-2 ring-navy-900 ring-offset-2; }
-        .search-dropdown { max-height: 300px; overflow-y: auto; }
         .auth-provider-btn { transition: all 0.2s; }
         .auth-provider-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
     </style>
@@ -58,7 +55,7 @@
                             class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 focus:border-transparent outline-none"
                             oninput="handleSearch(this.value)" onfocus="showSearchResults()" onblur="hideSearchResults()">
                         <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5"></i>
-                        <div id="search-results" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 search-dropdown z-50"></div>
+                        <div id="search-results" class="hidden absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-80 overflow-y-auto z-50"></div>
                     </div>
                 </div>
 
@@ -80,7 +77,7 @@
                             <div id="user-avatar" class="w-8 h-8 rounded-full bg-navy-900 text-white flex items-center justify-center text-sm font-bold hidden"></div>
                             <i data-lucide="user" class="w-6 h-6" id="user-icon"></i>
                         </button>
-                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                             <div id="guest-menu">
                                 <button onclick="router.navigate('login'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Login</button>
                                 <button onclick="router.navigate('register'); toggleUserMenu()" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign Up</button>
@@ -194,13 +191,30 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Additional Images (Max 4)</label>
                             <div class="grid grid-cols-4 gap-2" id="additional-images-container">
-                                ${[1,2,3,4].map(i => `
-                                <div id="drop-zone-add-${i}" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-${i}').click()">
-                                    <input type="file" id="file-input-add-${i}" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', ${i})">
-                                    <div id="upload-placeholder-add-${i}"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
-                                    <img id="image-preview-add-${i}" class="hidden w-full h-full object-cover rounded">
-                                    <input type="hidden" id="edit-image-add-${i}">
-                                </div>`).join('')}
+                                <div id="drop-zone-add-1" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-1').click()">
+                                    <input type="file" id="file-input-add-1" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 1)">
+                                    <div id="upload-placeholder-add-1"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
+                                    <img id="image-preview-add-1" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-1">
+                                </div>
+                                <div id="drop-zone-add-2" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-2').click()">
+                                    <input type="file" id="file-input-add-2" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 2)">
+                                    <div id="upload-placeholder-add-2"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
+                                    <img id="image-preview-add-2" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-2">
+                                </div>
+                                <div id="drop-zone-add-3" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-3').click()">
+                                    <input type="file" id="file-input-add-3" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 3)">
+                                    <div id="upload-placeholder-add-3"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
+                                    <img id="image-preview-add-3" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-3">
+                                </div>
+                                <div id="drop-zone-add-4" class="border-2 border-dashed border-gray-300 rounded-lg p-2 text-center hover:border-navy-900 transition cursor-pointer aspect-square flex flex-col items-center justify-center" onclick="document.getElementById('file-input-add-4').click()">
+                                    <input type="file" id="file-input-add-4" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'add', 4)">
+                                    <div id="upload-placeholder-add-4"><i data-lucide="plus" class="w-4 h-4 mx-auto text-gray-400"></i></div>
+                                    <img id="image-preview-add-4" class="hidden w-full h-full object-cover rounded">
+                                    <input type="hidden" id="edit-image-add-4">
+                                </div>
                             </div>
                         </div>
 
@@ -291,11 +305,7 @@
         const database = firebase.database();
         const auth = firebase.auth();
 
-        const ADMIN_CREDENTIALS = {
-            email: 'athifnular@icloud.com',
-            password: 'Athif1010#'
-        };
-
+        const ADMIN_EMAIL = 'athifnular@icloud.com';
         const DELIVERY = { FREE_ITEM_COUNT: 2, CHARGE: 300 };
 
         const store = {
@@ -304,23 +314,21 @@
             cart: JSON.parse(localStorage.getItem('an7_cart')) || [],
             products: [],
             orders: [],
-            userOrders: []
+            userOrders: [],
+            authInitialized: false
         };
 
         // Auth State Listener
         auth.onAuthStateChanged((user) => {
+            store.authInitialized = true;
             store.currentUser = user;
-            updateUserUI();
             
             if (user) {
-                // Check if admin
-                if (user.email === ADMIN_CREDENTIALS.email) {
-                    store.isAdmin = true;
+                store.isAdmin = (user.email === ADMIN_EMAIL);
+                if (store.isAdmin) {
                     document.getElementById('admin-nav-btn')?.classList.remove('hidden');
                     document.getElementById('mobile-admin-btn')?.classList.remove('hidden');
                 }
-                
-                // Load user orders
                 loadUserOrders(user.uid);
             } else {
                 store.isAdmin = false;
@@ -329,25 +337,50 @@
                 document.getElementById('mobile-admin-btn')?.classList.add('hidden');
             }
             
+            updateUserUI();
             lucide.createIcons();
         });
 
-        // Load products
+        // Load products - THIS WORKS FOR EVERYONE (logged in or not)
+        function loadProducts() {
+            database.ref('products').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    console.log('Products loaded:', data); // Debug
+                    if (data) {
+                        store.products = Object.values(data);
+                    } else {
+                        // Default products if empty
+                        store.products = [
+                            {id: 1, name: "Casio fx-991ES Plus 2nd Edition", price: 4850, originalPrice: 5500, image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80", images: [], badge: "Original", stock: 15, description: "The most popular scientific calculator among Sri Lankan students.", category: "calculator"},
+                            {id: 2, name: "Casio fx-991ES Plus (Highcopy)", price: 2850, originalPrice: 3500, image: "https://images.unsplash.com/photo-1587145820266-a5951eebb23d?w=500&q=80", images: [], badge: "Best Value", stock: 8, description: "High-quality A-grade replica with identical functionality.", category: "calculator"},
+                            {id: 3, name: "Casio fx-991EX Classwiz", price: 7200, originalPrice: 8500, image: "https://images.unsplash.com/photo-1564466021188-1e1f7337155d?w=500&q=80", images: [], badge: "Premium", stock: 5, description: "Advanced scientific calculator with spreadsheet functionality.", category: "calculator"}
+                        ];
+                        // Save defaults
+                        store.products.forEach(p => database.ref('products/' + p.id).set(p));
+                    }
+                    // Refresh current view
+                    if (router.currentRoute) {
+                        router.navigate(router.currentRoute, {}, true);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error loading products:', error);
+                    showToast('Error loading products. Please refresh.', 'error');
+                });
+        }
+
+        // Load products immediately
+        loadProducts();
+
+        // Also listen for real-time updates
         database.ref('products').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 store.products = Object.values(data);
-            } else {
-                // Default products
-                store.products = [
-                    {id: 1, name: "Casio fx-991ES Plus 2nd Edition", price: 4850, originalPrice: 5500, image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=500&q=80", images: [], badge: "Original", stock: 15, description: "The most popular scientific calculator among Sri Lankan students.", category: "calculator"},
-                    {id: 2, name: "Casio fx-991ES Plus (Highcopy)", price: 2850, originalPrice: 3500, image: "https://images.unsplash.com/photo-1587145820266-a5951eebb23d?w=500&q=80", images: [], badge: "Best Value", stock: 8, description: "High-quality A-grade replica with identical functionality.", category: "calculator"},
-                    {id: 3, name: "Casio fx-991EX Classwiz", price: 7200, originalPrice: 8500, image: "https://images.unsplash.com/photo-1564466021188-1e1f7337155d?w=500&q=80", images: [], badge: "Premium", stock: 5, description: "Advanced scientific calculator with spreadsheet functionality.", category: "calculator"}
-                ];
-                store.products.forEach(p => database.ref('products/' + p.id).set(p));
-            }
-            if (router.currentRoute === 'shop' || router.currentRoute === 'home' || router.currentRoute === 'admin') {
-                router.navigate(router.currentRoute, {}, true);
+                if (router.currentRoute === 'shop' || router.currentRoute === 'home' || router.currentRoute === 'admin') {
+                    router.navigate(router.currentRoute, {}, true);
+                }
             }
         });
 
@@ -368,7 +401,6 @@
             const mobileUserMenu = document.getElementById('mobile-user-menu');
             
             if (user) {
-                // Show avatar with initials
                 const initials = user.displayName ? user.displayName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
                 avatar.textContent = initials;
                 avatar.classList.remove('hidden');
@@ -378,7 +410,6 @@
                 userMenu.classList.remove('hidden');
                 emailDisplay.textContent = user.email;
                 
-                // Update mobile menu
                 if (mobileUserMenu) {
                     mobileUserMenu.innerHTML = `
                         <button onclick="router.navigate('profile'); toggleMobileMenu()" class="block w-full text-left px-3 py-2 text-base font-medium text-navy-900 hover:bg-gray-50">My Profile</button>
@@ -403,26 +434,21 @@
 
         const router = {
             currentRoute: 'home',
-            navigate(route, params = {}, skipCheck = false) {
-                if (route === 'admin' && !skipCheck && !store.isAdmin) {
-                    const app = document.getElementById('app');
-                    app.innerHTML = '<div class="min-h-screen flex items-center justify-center"><div class="text-center"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-navy-900 mx-auto mb-4"></div><p class="text-gray-600">Checking admin access...</p></div></div>';
-                    
-                    setTimeout(() => {
-                        if (store.isAdmin) {
-                            this._render(route, params);
-                        } else {
-                            this._render('login', params);
-                        }
-                    }, 1000);
-                    return;
+            navigate(route, params = {}, force = false) {
+                if (this.currentRoute === route && !force) return;
+                
+                if (route === 'admin' && !store.isAdmin) {
+                    if (!store.authInitialized) {
+                        setTimeout(() => this.navigate(route, params), 500);
+                        return;
+                    }
+                    if (!store.isAdmin) {
+                        this.navigate('login');
+                        return;
+                    }
                 }
                 
                 this.currentRoute = route;
-                this._render(route, params);
-            },
-            
-            _render(route, params) {
                 window.scrollTo(0, 0);
                 const app = document.getElementById('app');
                 app.innerHTML = '';
@@ -598,7 +624,7 @@
                                         <i data-lucide="alert-circle" class="w-5 h-5 text-yellow-600 mt-0.5"></i>
                                         <div>
                                             <h4 class="font-bold text-yellow-900">Guest Checkout</h4>
-                                            <p class="text-sm text-yellow-700">You're checking out as a guest. <button onclick="router.navigate('login')" class="underline font-medium">Login</button> or <button onclick="router.navigate('register')" class="underline font-medium">create an account</button> to track your orders easily.</p>
+                                            <p class="text-sm text-yellow-700">You're checking out as a guest. <button onclick="router.navigate('login')" class="underline font-medium">Login</button> to track your order.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -607,12 +633,13 @@
                                     <div class="flex items-start gap-3">
                                         <i data-lucide="check-circle" class="w-5 h-5 text-green-600 mt-0.5"></i>
                                         <div>
-                                            <h4 class="font-bold text-green-900">Welcome back, ${store.currentUser.displayName || store.currentUser.email}!</h4>
+                                            <h4 class="font-bold text-green-900">Welcome back!</h4>
                                             <p class="text-sm text-green-700">Your order will be saved to your account.</p>
                                         </div>
                                     </div>
                                 </div>
                                 `}
+                                
                                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                                     <div class="flex items-start gap-3">
                                         <i data-lucide="truck" class="w-5 h-5 text-blue-600 mt-0.5"></i>
@@ -622,6 +649,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div class="mb-8">
                                     <h3 class="font-bold text-gray-900 mb-4">Select Payment Method</h3>
                                     <div class="space-y-3">
@@ -641,6 +669,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                
                                 <div id="bank-details" class="hidden mb-8 bg-yellow-50 border border-yellow-200 rounded-xl p-6">
                                     <h4 class="font-bold text-navy-900 mb-4 flex items-center gap-2"><i data-lucide="alert-circle" class="w-5 h-5"></i> Bank Transfer Details</h4>
                                     <div class="space-y-2 text-sm">
@@ -650,6 +679,7 @@
                                         <p><span class="font-medium">Branch:</span> Matara</p>
                                     </div>
                                 </div>
+                                
                                 <form id="checkout-form" onsubmit="processCheckout(event)" class="space-y-6 bg-white rounded-xl shadow-sm p-6">
                                     <div class="grid md:grid-cols-2 gap-4">
                                         <div><label class="block text-sm font-medium text-gray-700 mb-1">First Name *</label><input type="text" name="firstName" required class="w-full rounded-lg border-gray-300 border px-3 py-2"></div>
@@ -671,7 +701,9 @@
                                             <option value="Other">Other</option>
                                         </select>
                                     </div>
-                                    <button type="submit" class="w-full bg-navy-900 text-white py-4 rounded-lg font-bold text-lg hover:bg-navy-800 transition flex items-center justify-center gap-2"><i data-lucide="check-circle" class="w-5 h-5"></i> Place Order</button>
+                                    <button type="submit" class="w-full bg-navy-900 text-white py-4 rounded-lg font-bold text-lg hover:bg-navy-800 transition flex items-center justify-center gap-2">
+                                        <i data-lucide="check-circle" class="w-5 h-5"></i> Place Order via WhatsApp
+                                    </button>
                                 </form>
                             </div>
                             <div>
@@ -739,17 +771,6 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                                <div class="p-6 border-b border-gray-200"><h2 class="text-xl font-bold text-navy-900">Recent Orders</h2></div>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-left">
-                                        <thead class="bg-gray-50 text-gray-600 text-sm"><tr><th class="px-6 py-4">Order ID</th><th class="px-6 py-4">Customer</th><th class="px-6 py-4">Payment</th><th class="px-6 py-4">Total</th><th class="px-6 py-4">Status</th></tr></thead>
-                                        <tbody class="divide-y divide-gray-100">
-                                            ${store.orders.length===0?'<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>':store.orders.slice().reverse().slice(0,10).map(o=>{const payment=(o.paymentMethod||'cod').toUpperCase();const status=o.status||'pending';const total=parseFloat(o.total)||0;return`<tr><td class="px-6 py-4 font-medium">#${o.id}</td><td class="px-6 py-4">${o.customer||'Unknown'}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded text-xs ${payment==='COD'?'bg-gray-100':'bg-blue-100 text-blue-800'}">${payment}</span></td><td class="px-6 py-4">Rs. ${total.toLocaleString()}</td><td class="px-6 py-4"><span class="px-2 py-1 rounded-full text-xs ${status==='delivered'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${status}</span></td></tr>`}).join('')}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 `;
@@ -760,21 +781,7 @@
                 const div = document.createElement('div');
                 div.innerHTML = `
                     <div class="bg-navy-900 text-white py-24"><div class="max-w-4xl mx-auto px-4 text-center"><h1 class="text-5xl font-display font-bold mb-6">Our Story</h1><p class="text-xl text-gray-300">Study Smart with AN7</p></div></div>
-                    <div class="max-w-4xl mx-auto px-4 py-16 space-y-8">
-                        <div class="bg-white rounded-2xl shadow-lg p-8">
-                            <h2 class="text-2xl font-bold text-navy-900 mb-4">The Beginning</h2>
-                            <p class="text-gray-600 leading-relaxed">AN7 was born in 2022 when I was a 21-year-old engineering student at the University of Peradeniya. What started as selling calculators to friends quickly grew into serving thousands of students across Sri Lanka.</p>
-                        </div>
-                        <div class="bg-white rounded-2xl shadow-lg p-8">
-                            <h2 class="text-2xl font-bold text-navy-900 mb-4">Why Choose Us?</h2>
-                            <ul class="space-y-3 text-gray-600">
-                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> 100% Original Casio Products</li>
-                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> Islandwide Delivery</li>
-                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> 1-Year Warranty</li>
-                                <li class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-accent-yellow"></i> Student Discounts Available</li>
-                            </ul>
-                        </div>
-                    </div>
+                    <div class="max-w-4xl mx-auto px-4 py-16"><div class="bg-white rounded-2xl shadow-lg p-8"><h2 class="text-2xl font-bold text-navy-900 mb-4">The Beginning</h2><p class="text-gray-600">AN7 was born in 2022 when I was a 21-year-old engineering student at the University of Peradeniya. What started as selling calculators to friends quickly grew into serving thousands of students across Sri Lanka.</p></div></div>
                 `;
                 return div;
             },
@@ -793,10 +800,6 @@
                                 <button onclick="signInWithGoogle()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                     <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                     <span class="font-medium text-gray-700">Continue with Google</span>
-                                </button>
-                                <button onclick="signInWithApple()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                                    <span class="font-medium">Continue with Apple</span>
                                 </button>
                             </div>
                             
@@ -832,10 +835,6 @@
                                 <button onclick="signInWithGoogle()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                                     <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                                     <span class="font-medium text-gray-700">Continue with Google</span>
-                                </button>
-                                <button onclick="signInWithApple()" class="auth-provider-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                                    <span class="font-medium">Continue with Apple</span>
                                 </button>
                             </div>
                             
@@ -891,24 +890,7 @@
                                             <div><label class="block text-sm font-medium text-gray-700 mb-1">Display Name</label><input type="text" value="${user.displayName || ''}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50"></div>
                                             <div><label class="block text-sm font-medium text-gray-700 mb-1">Email</label><input type="email" value="${user.email}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50"></div>
                                         </div>
-                                        <div><label class="block text-sm font-medium text-gray-700 mb-1">User ID</label><input type="text" value="${user.uid}" readonly class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm"></div>
                                     </div>
-                                </div>
-                                <div class="bg-white rounded-2xl shadow-sm p-6">
-                                    <h3 class="font-bold text-lg text-gray-900 mb-4">Recent Orders</h3>
-                                    ${store.userOrders.length === 0 ? '<p class="text-gray-500">No orders yet. <button onclick="router.navigate(\'shop\')" class="text-navy-900 underline">Start shopping</button></p>' : 
-                                    `<div class="space-y-4">${store.userOrders.slice().reverse().slice(0,5).map(o => `
-                                        <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
-                                            <div>
-                                                <p class="font-medium text-navy-900">Order #${o.id}</p>
-                                                <p class="text-sm text-gray-500">${new Date(o.date).toLocaleDateString()}</p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p class="font-bold text-navy-900">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</p>
-                                                <span class="text-xs px-2 py-1 rounded-full ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'pending'}</span>
-                                            </div>
-                                        </div>
-                                    `).join('')}</div>`}
                                 </div>
                             </div>
                         </div>
@@ -928,14 +910,12 @@
                         <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
                             <i data-lucide="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
                             <h2 class="text-xl font-bold text-gray-900 mb-2">Please login to view your orders</h2>
-                            <p class="text-gray-600 mb-6">Track your orders and view order history</p>
                             <button onclick="router.navigate('login')" class="bg-navy-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-navy-800 transition">Login</button>
                         </div>
                         ` : ordersToShow.length === 0 ? `
                         <div class="bg-white rounded-2xl shadow-sm p-8 text-center">
                             <i data-lucide="package" class="w-16 h-16 mx-auto text-gray-300 mb-4"></i>
                             <h2 class="text-xl font-bold text-gray-900 mb-2">No orders yet</h2>
-                            <p class="text-gray-600 mb-6">You haven't placed any orders yet.</p>
                             <button onclick="router.navigate('shop')" class="bg-navy-900 text-white px-6 py-3 rounded-lg font-bold hover:bg-navy-800 transition">Start Shopping</button>
                         </div>
                         ` : `
@@ -948,7 +928,7 @@
                                         <p class="font-bold text-navy-900 text-lg">#${o.id}</p>
                                     </div>
                                     <div class="text-right">
-                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : o.status === 'shipped' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'Processing'}</span>
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'Processing'}</span>
                                     </div>
                                 </div>
                                 <div class="border-t border-b border-gray-100 py-4 mb-4">
@@ -970,7 +950,6 @@
                                 <div class="flex justify-between items-center">
                                     <div class="text-sm text-gray-500">
                                         <p>Ordered on ${new Date(o.date).toLocaleDateString()}</p>
-                                        <p>Payment: ${(o.paymentMethod || 'COD').toUpperCase()}</p>
                                     </div>
                                     <div class="text-right">
                                         <p class="text-sm text-gray-500">Total</p>
@@ -1022,26 +1001,17 @@
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider)
                 .then((result) => {
-                    showToast('Welcome ' + result.user.displayName + '!');
+                    showToast('Welcome ' + (result.user.displayName || result.user.email) + '!');
                     router.navigate('home');
                 })
                 .catch((error) => {
-                    showToast(error.message, 'error');
-                });
-        }
-
-        function signInWithApple() {
-            const provider = new firebase.auth.OAuthProvider('apple.com');
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    showToast('Welcome!');
-                    router.navigate('home');
-                })
-                .catch((error) => {
+                    console.error('Google Sign In Error:', error);
                     if (error.code === 'auth/popup-closed-by-user') {
                         showToast('Sign in cancelled', 'error');
+                    } else if (error.code === 'auth/popup-blocked') {
+                        showToast('Please allow popups for this site', 'error');
                     } else {
-                        showToast('Apple Sign In coming soon or check configuration', 'error');
+                        showToast('Google Sign In failed: ' + error.message, 'error');
                     }
                 });
         }
@@ -1084,7 +1054,7 @@
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => {
                     showToast('Welcome back!');
-                    if (email === ADMIN_CREDENTIALS.email) {
+                    if (email === ADMIN_EMAIL) {
                         router.navigate('admin');
                     } else {
                         router.navigate('home');
@@ -1112,7 +1082,6 @@
             router.navigate('checkout');
         }
 
-        // Search Functions
         function handleSearch(query) {
             const resultsDiv = document.getElementById('search-results');
             if (!query.trim()) { resultsDiv.classList.add('hidden'); return; }
@@ -1184,7 +1153,7 @@
                 subtotalEl.textContent = `Rs. ${subtotal.toLocaleString()}`;
                 totalEl.textContent = `Rs. ${total.toLocaleString()}`;
                 deliveryInfo.innerHTML = totalItems >= DELIVERY.FREE_ITEM_COUNT ? '<span class="text-green-600 font-medium">✓ Free delivery (2+ items)</span>' : `Delivery: Rs. ${DELIVERY.CHARGE} (Add ${DELIVERY.FREE_ITEM_COUNT - totalItems} more for free)`;
-                container.innerHTML = store.cart.map(item=>`<div class="flex gap-4 bg-gray-50 p-4 rounded-xl"><img src="${item.image}" class="w-20 h-20 object-cover rounded-lg"><div class="flex-1"><h4 class="font-medium text-navy-900">${item.name}</h4><p class="text-sm text-gray-600">Rs. ${item.price.toLocaleString()}</p><div class="flex items-center gap-3 mt-2"><button onclick="updateCartQty(${item.id},-1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center">-</button><span>${item.quantity}</span><button onclick="updateCartQty(${item.id},1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center">+</button><button onclick="removeFromCart(${item.id})" class="ml-auto text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div>`).join('');
+                container.innerHTML = store.cart.map(item=>`<div class="flex gap-4 bg-gray-50 p-4 rounded-xl"><img src="${item.image}" class="w-20 h-20 object-cover rounded-lg"><div class="flex-1"><h4 class="font-medium text-navy-900">${item.name}</h4><p class="text-sm text-gray-600">Rs. ${item.price.toLocaleString()}</p><div class="flex items-center gap-3 mt-2"><button onclick="updateCartQty(${item.id},-1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center hover:bg-gray-100">-</button><span>${item.quantity}</span><button onclick="updateCartQty(${item.id},1)" class="w-6 h-6 rounded bg-white border flex items-center justify-center hover:bg-gray-100">+</button><button onclick="removeFromCart(${item.id})" class="ml-auto text-red-500 hover:text-red-700"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div>`).join('');
             } else {
                 badge.classList.add('hidden');
                 subtotalEl.textContent = 'Rs. 0.00'; totalEl.textContent = 'Rs. 0.00'; deliveryInfo.innerHTML = '';
@@ -1244,21 +1213,36 @@
                 paymentMethod: paymentMethod
             };
 
-            database.ref('orders/' + orderData.id).set(orderData);
-            
-            const items = store.cart.map(i => `${i.name} x${i.quantity}`).join(', ');
-            const message = `🛒 NEW ORDER #${orderData.id}\n\n👤 Customer: ${orderData.customer}\n📞 Phone: ${orderData.phone}\n📍 Address: ${orderData.address}, ${orderData.city}\n\n📦 Items: ${items}\n💰 Subtotal: Rs. ${subtotal.toLocaleString()}\n🚚 Delivery: ${delivery===0?'FREE':'Rs. '+delivery}\n💵 Total: Rs. ${orderData.total.toLocaleString()}\n💳 Payment: ${paymentMethod.toUpperCase()}`;
-            
-            window.open(`https://wa.me/94717627177?text=${encodeURIComponent(message)}`, '_blank');
-            store.cart = []; saveCart(); showToast('Order placed! Check WhatsApp.'); router.navigate('home');
+            // Save to Firebase
+            database.ref('orders/' + orderData.id).set(orderData)
+                .then(() => {
+                    // Create WhatsApp message
+                    const items = store.cart.map(i => `${i.name} x${i.quantity}`).join(', ');
+                    const message = `🛒 NEW ORDER #${orderData.id}%0A%0A👤 Customer: ${orderData.customer}%0A📞 Phone: ${orderData.phone}%0A📍 Address: ${orderData.address}, ${orderData.city}%0A%0A📦 Items: ${items}%0A💰 Subtotal: Rs. ${subtotal.toLocaleString()}%0A🚚 Delivery: ${delivery===0?'FREE':'Rs. '+delivery}%0A💵 Total: Rs. ${orderData.total.toLocaleString()}%0A💳 Payment: ${paymentMethod.toUpperCase()}`;
+                    
+                    // Clear cart
+                    store.cart = []; 
+                    saveCart(); 
+                    showToast('Order placed! Opening WhatsApp...');
+                    
+                    // Open WhatsApp
+                    setTimeout(() => {
+                        window.open(`https://wa.me/94717627177?text=${message}`, '_blank');
+                        router.navigate('home');
+                    }, 1000);
+                })
+                .catch((error) => {
+                    console.error('Order save error:', error);
+                    showToast('Error saving order. Please try again.', 'error');
+                });
         }
 
         function buyOnWhatsApp(productId) {
             const product = store.products.find(p => p.id === productId);
             if (!product) return;
             const qty = parseInt(document.getElementById('qty-input')?.value || 1);
-            const message = `Hi AN7, I want to buy:\n${product.name} x${qty}\nTotal: Rs. ${(product.price*qty).toLocaleString()}\n\nName:\nAddress:`;
-            window.open(`https://wa.me/94717627177?text=${encodeURIComponent(message)}`, '_blank');
+            const message = `Hi AN7, I want to buy:%0A${product.name} x${qty}%0ATotal: Rs. ${(product.price*qty).toLocaleString()}%0A%0AName:%0AAddress:`;
+            window.open(`https://wa.me/94717627177?text=${message}`, '_blank');
         }
 
         // Admin Functions
