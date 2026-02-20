@@ -803,7 +803,7 @@
                 return div;
             },
 
-            admin() {
+           admin() {
     if (!store.isAdmin) {
         router.navigate('login');
         return document.createElement('div');
@@ -898,53 +898,30 @@
                         <table class="w-full text-left">
                             <thead class="bg-gray-50 text-gray-600 text-sm">
                                 <tr>
-                                    <th class="px-4 py-4">Order ID</th>
-                                    <th class="px-4 py-4">Customer</th>
-                                    <th class="px-4 py-4">Phone</th>
-                                    <th class="px-4 py-4">Address</th>
-                                    <th class="px-4 py-4">Items</th>
-                                    <th class="px-4 py-4">Total</th>
-                                    <th class="px-4 py-4">Status</th>
-                                    <th class="px-4 py-4">Action</th>
-                                    <th class="px-4 py-4">Delete</th>
+                                    <th class="px-6 py-4">Order ID</th>
+                                    <th class="px-6 py-4">Customer</th>
+                                    <th class="px-6 py-4">Phone</th>
+                                    <th class="px-6 py-4">Total</th>
+                                    <th class="px-6 py-4">Status</th>
+                                    <th class="px-6 py-4">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
-                                ${store.orders.length === 0 ? '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>' : store.orders.slice().reverse().map(o => `
-                                    <tr class="hover:bg-gray-50 ${o.status === 'cancelled' ? 'bg-gray-50 opacity-60' : ''}">
-                                        <td class="px-4 py-4 font-medium">#${o.id}</td>
-                                        <td class="px-4 py-4">
-                                            <div class="font-medium">${o.customer || 'N/A'}</div>
-                                            <div class="text-xs text-gray-500">${o.email || ''}</div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm">${o.phone || 'N/A'}</td>
-                                        <td class="px-4 py-4 text-sm max-w-xs">
-                                            <div class="truncate" title="${o.address || ''}, ${o.city || ''}">
-                                                ${o.address || 'N/A'}<br>
-                                                <span class="text-gray-500">${o.city || ''}</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-4 text-sm">
-                                            ${o.items ? o.items.map(item => `
-                                                <div class="flex items-center gap-2 mb-1">
-                                                    <img src="${item.image}" class="w-6 h-6 rounded object-cover">
-                                                    <span class="truncate max-w-[150px]">${item.name} x${item.quantity}</span>
-                                                </div>
-                                            `).join('') : 'No items'}
-                                        </td>
-                                        <td class="px-4 py-4 font-medium">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</td>
-                                        <td class="px-4 py-4">
-                                            <span class="px-2 py-1 rounded-full text-xs font-medium ${o.status === 'delivered' ? 'bg-green-100 text-green-800' : o.status === 'processing' ? 'bg-blue-100 text-blue-800' : o.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${o.status || 'pending'}</span>
-                                        </td>
-                                        <td class="px-4 py-4">
-                                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-navy-900">
+                                ${store.orders.length === 0 ? '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>' : store.orders.slice().reverse().map(o => `
+                                    <tr class="hover:bg-blue-50 cursor-pointer transition-colors ${o.status === 'cancelled' ? 'bg-gray-50 opacity-60' : ''}" onclick="viewOrderDetails('${o.id}')">
+                                        <td class="px-6 py-4 font-medium text-navy-900">#${o.id}</td>
+                                        <td class="px-6 py-4 font-medium">${o.customer || 'N/A'}</td>
+                                        <td class="px-6 py-4">${o.phone || 'N/A'}</td>
+                                        <td class="px-6 py-4 font-bold">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</td>
+                                        <td class="px-6 py-4" onclick="event.stopPropagation()">
+                                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-navy-900 bg-white">
                                                 <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
                                                 <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
                                                 <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
                                                 <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                                             </select>
                                         </td>
-                                        <td class="px-4 py-4">
+                                        <td class="px-6 py-4" onclick="event.stopPropagation()">
                                             <button onclick="deleteOrder('${o.id}')" class="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-1">
                                                 <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
                                             </button>
@@ -957,9 +934,38 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Order Details Modal -->
+        <div id="order-details-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 transition-opacity" onclick="closeOrderDetails()">
+                    <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+                </div>
+                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="detail-order-id">Order Details</h3>
+                            <button onclick="closeOrderDetails()" class="text-gray-400 hover:text-gray-600">
+                                <i data-lucide="x" class="w-6 h-6"></i>
+                            </button>
+                        </div>
+                        <div id="order-details-content" class="space-y-4">
+                            <!-- Content injected here -->
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <button type="button" onclick="closeOrderDetails()" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-navy-900 text-base font-medium text-white hover:bg-navy-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     `;
     return div;
 },
+
 
 
             about() {
@@ -1573,6 +1579,98 @@
                     .catch(err => showToast('Error deleting order: ' + err.message, 'error'));
             }
         }
+
+        function viewOrderDetails(orderId) {
+    const order = store.orders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const modal = document.getElementById('order-details-modal');
+    const content = document.getElementById('order-details-content');
+    const title = document.getElementById('detail-order-id');
+    
+    title.textContent = `Order #${order.id}`;
+    
+    const itemsHtml = order.items ? order.items.map(item => `
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <img src="${item.image}" class="w-12 h-12 rounded object-cover">
+            <div class="flex-1">
+                <p class="font-medium text-navy-900">${item.name}</p>
+                <p class="text-sm text-gray-600">Qty: ${item.quantity} × Rs. ${item.price.toLocaleString()}</p>
+            </div>
+            <div class="font-bold text-navy-900">
+                Rs. ${(item.price * item.quantity).toLocaleString()}
+            </div>
+        </div>
+    `).join('') : '<p class="text-gray-500">No items</p>';
+    
+    content.innerHTML = `
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+                <span class="text-gray-500">Customer:</span>
+                <p class="font-medium text-gray-900">${order.customer || 'N/A'}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Phone:</span>
+                <p class="font-medium text-gray-900">${order.phone || 'N/A'}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Email:</span>
+                <p class="font-medium text-gray-900">${order.email || 'N/A'}</p>
+            </div>
+            <div>
+                <span class="text-gray-500">Date:</span>
+                <p class="font-medium text-gray-900">${new Date(order.date).toLocaleString()}</p>
+            </div>
+        </div>
+        
+        <div class="border-t pt-4">
+            <span class="text-gray-500 text-sm">Delivery Address:</span>
+            <p class="font-medium text-gray-900 mt-1">${order.address || 'N/A'}</p>
+            <p class="text-gray-600">${order.city || ''}</p>
+        </div>
+        
+        <div class="border-t pt-4">
+            <span class="text-gray-500 text-sm mb-2 block">Items Ordered:</span>
+            <div class="space-y-2">
+                ${itemsHtml}
+            </div>
+        </div>
+        
+        <div class="border-t pt-4 space-y-2">
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Subtotal:</span>
+                <span class="font-medium">Rs. ${(order.subtotal || 0).toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Delivery:</span>
+                <span class="font-medium">${order.delivery === 0 ? 'FREE' : 'Rs. ' + (order.delivery || 300).toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold text-navy-900 border-t pt-2">
+                <span>Total:</span>
+                <span>Rs. ${(parseFloat(order.total) || 0).toLocaleString()}</span>
+            </div>
+        </div>
+        
+        <div class="border-t pt-4 flex items-center justify-between">
+            <div>
+                <span class="text-gray-500 text-sm">Payment Method:</span>
+                <p class="font-medium text-gray-900">${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'}</p>
+            </div>
+            <div class="text-right">
+                <span class="text-gray-500 text-sm">Status:</span>
+                <span class="ml-2 px-3 py-1 rounded-full text-xs font-medium ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'processing' ? 'bg-blue-100 text-blue-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${order.status || 'pending'}</span>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+}
+
+function closeOrderDetails() {
+    document.getElementById('order-details-modal').classList.add('hidden');
+}
+
 
         function deleteProduct(id) {
             if (confirm('Delete this product?')) {
