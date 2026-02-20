@@ -58,7 +58,7 @@
 
                 <div class="hidden md:flex flex-1 max-w-lg mx-8 relative">
                     <div class="relative w-full">
-                        <input type="text" id="search-input" placeholder="Search calculators..." 
+                        <input type="text" id="search-input" placeholder="Search products..." 
                             class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-navy-900 focus:border-transparent outline-none"
                             oninput="handleSearch(this.value)" onfocus="showSearchResults()" onblur="hideSearchResults()">
                         <i data-lucide="search" class="w-5 h-5 text-gray-400 absolute left-3 top-2.5"></i>
@@ -190,6 +190,17 @@
                                 <label class="block text-sm font-medium text-gray-700">Stock Qty</label>
                                 <input type="number" id="edit-stock" required min="0" class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2">
                             </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Category</label>
+                            <select id="edit-category" required class="mt-1 block w-full rounded-lg border-gray-300 border px-3 py-2 focus:ring-navy-900 focus:border-navy-900">
+                                <option value="calculator">Calculator</option>
+                                <option value="stationery">Stationery</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="books">Books</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
                         
                         <div>
@@ -564,7 +575,7 @@
                         <div class="max-w-7xl mx-auto px-4">
                             <div class="flex justify-between items-end mb-12">
                                 <div>
-                                    <h2 class="text-3xl font-display font-bold text-navy-900 mb-2">Featured Calculators</h2>
+                                    <h2 class="text-3xl font-display font-bold text-navy-900 mb-2">Featured Products</h2>
                                     <p class="text-gray-600">Exam-approved models for engineering & science students</p>
                                 </div>
                                 <button onclick="router.navigate('shop')" class="hidden md:flex items-center gap-2 text-navy-700 font-medium hover:text-navy-900">View All <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
@@ -586,17 +597,30 @@
                 if (searchQuery) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase()));
                 if (category !== 'all') filtered = filtered.filter(p => p.category === category);
                 
+                // Get unique categories dynamically
+                const categories = ['all', ...new Set(store.products.map(p => p.category).filter(Boolean))];
+                const categoryLabels = {
+                    'all': 'All',
+                    'calculator': 'Calculators',
+                    'stationery': 'Stationery',
+                    'electronics': 'Electronics',
+                    'books': 'Books',
+                    'accessories': 'Accessories',
+                    'other': 'Other'
+                };
+                
                 div.innerHTML = `
                     <div class="bg-navy-900 text-white py-16">
                         <div class="max-w-7xl mx-auto px-4">
-                            <h1 class="text-4xl font-display font-bold mb-4">${searchQuery ? `Search: "${searchQuery}"` : 'Shop Calculators'}</h1>
+                            <h1 class="text-4xl font-display font-bold mb-4">${searchQuery ? `Search: "${searchQuery}"` : 'Shop Products'}</h1>
                             <p class="text-gray-300">${filtered.length} products found</p>
                         </div>
                     </div>
                     <div class="max-w-7xl mx-auto px-4 py-8">
                         <div class="flex flex-wrap gap-4 mb-8">
-                            <button onclick="router.navigate('shop')" class="px-4 py-2 rounded-lg ${category === 'all' ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'}">All</button>
-                            <button onclick="router.navigate('shop',{category:'calculator'})" class="px-4 py-2 rounded-lg ${category === 'calculator' ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'}">Calculators</button>
+                            ${categories.map(cat => `
+                                <button onclick="router.navigate('shop',{category:'${cat}'})" class="px-4 py-2 rounded-lg ${category === cat ? 'bg-navy-900 text-white' : 'bg-gray-200 text-gray-700'} capitalize">${categoryLabels[cat] || cat}</button>
+                            `).join('')}
                         </div>
                         ${filtered.length === 0 ? '<div class="text-center py-20 text-gray-500 text-lg">No products found</div>' : `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">${filtered.map(p=>components.productCard(p)).join('')}</div>`}
                     </div>
@@ -634,7 +658,7 @@
                                     <div class="space-y-6">
                                         <div>
                                             <div class="flex items-center gap-2 mb-2">
-                                                <span class="px-3 py-1 bg-accent-yellow/20 text-navy-900 text-xs font-bold rounded-full">${product.badge}</span>
+                                                <span class="px-3 py-1 bg-accent-yellow/20 text-navy-900 text-xs font-bold rounded-full capitalize">${product.category || 'Product'}</span>
                                                 ${product.stock > 0 ? `<span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">In Stock (${product.stock})</span>` : '<span class="px-3 py-1 bg-red-100 text-red-800 text-xs font-bold rounded-full">Out of Stock</span>'}
                                             </div>
                                             <h1 class="text-3xl font-display font-bold text-navy-900 mb-2">${product.name}</h1>
@@ -803,170 +827,172 @@
                 return div;
             },
 
-           admin() {
-    if (!store.isAdmin) {
-        router.navigate('login');
-        return document.createElement('div');
-    }
-    
-    const activeOrders = store.orders.filter(o => o.status !== 'cancelled');
-    const totalRevenue = activeOrders.reduce((sum, o) => {
-        const total = parseFloat(o.total) || 0;
-        return sum + (isFinite(total) ? total : 0);
-    }, 0);
-    
-    const pendingOrders = store.orders.filter(o => o.status === 'pending').length;
-    
-    const div = document.createElement('div');
-    div.innerHTML = `
-        <div class="min-h-screen bg-gray-100 pb-20">
-            <header class="bg-navy-900 text-white shadow-lg">
-                <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-                    <h1 class="font-display font-bold text-xl">AN7 Admin Panel</h1>
-                    <div class="flex items-center gap-4">
-                        <span class="text-sm text-gray-300">Welcome, Admin</span>
-                        <button onclick="logout()" class="text-sm bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">Logout</button>
-                    </div>
-                </div>
-            </header>
-            <div class="max-w-7xl mx-auto px-4 py-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-gray-600 text-sm font-medium mb-2">Total Products</h3>
-                        <p class="text-3xl font-bold text-navy-900">${store.products.length}</p>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-gray-600 text-sm font-medium mb-2">Total Orders</h3>
-                        <p class="text-3xl font-bold text-navy-900">${store.orders.length}</p>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-gray-600 text-sm font-medium mb-2">Pending Orders</h3>
-                        <p class="text-3xl font-bold text-orange-600">${pendingOrders}</p>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-gray-600 text-sm font-medium mb-2">Revenue (Active)</h3>
-                        <p class="text-3xl font-bold text-green-600">Rs. ${totalRevenue.toLocaleString()}</p>
-                        <p class="text-xs text-gray-500 mt-1">Excludes cancelled orders</p>
-                    </div>
-                </div>
+            admin() {
+                if (!store.isAdmin) {
+                    router.navigate('login');
+                    return document.createElement('div');
+                }
                 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-navy-900">Products</h2>
-                        <button onclick="openProductModal()" class="bg-navy-900 text-white px-4 py-2 rounded-lg hover:bg-navy-800 font-medium">+ Add New Product</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-gray-600 text-sm">
-                                <tr>
-                                    <th class="px-6 py-4">Product</th>
-                                    <th class="px-6 py-4">Price</th>
-                                    <th class="px-6 py-4">Stock</th>
-                                    <th class="px-6 py-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                ${store.products.length===0 ? '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">No products found</td></tr>' : store.products.map(p => `
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center gap-3">
-                                                <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover">
-                                                <span class="font-medium text-navy-900">${p.name}</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">Rs. ${p.price.toLocaleString()}</td>
-                                        <td class="px-6 py-4">
-                                            <span class="${p.stock < 5 ? 'text-red-600 font-bold' : ''}">${p.stock}</span>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <button onclick="openProductModal(${p.id})" class="text-blue-600 hover:text-blue-800 mr-4 font-medium">Edit</button>
-                                            <button onclick="deleteProduct(${p.id})" class="text-red-600 hover:text-red-800 font-medium">Delete</button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                const activeOrders = store.orders.filter(o => o.status !== 'cancelled');
+                const totalRevenue = activeOrders.reduce((sum, o) => {
+                    const total = parseFloat(o.total) || 0;
+                    return sum + (isFinite(total) ? total : 0);
+                }, 0);
                 
-                <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-navy-900">Recent Orders</h2>
-                        <span class="text-sm text-gray-500">Total: ${store.orders.length} orders</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 text-gray-600 text-sm">
-                                <tr>
-                                    <th class="px-6 py-4">Order ID</th>
-                                    <th class="px-6 py-4">Customer</th>
-                                    <th class="px-6 py-4">Phone</th>
-                                    <th class="px-6 py-4">Total</th>
-                                    <th class="px-6 py-4">Status</th>
-                                    <th class="px-6 py-4">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">
-                                ${store.orders.length === 0 ? '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>' : store.orders.slice().reverse().map(o => `
-                                    <tr class="hover:bg-blue-50 cursor-pointer transition-colors ${o.status === 'cancelled' ? 'bg-gray-50 opacity-60' : ''}" onclick="viewOrderDetails('${o.id}')">
-                                        <td class="px-6 py-4 font-medium text-navy-900">#${o.id}</td>
-                                        <td class="px-6 py-4 font-medium">${o.customer || 'N/A'}</td>
-                                        <td class="px-6 py-4">${o.phone || 'N/A'}</td>
-                                        <td class="px-6 py-4 font-bold">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</td>
-                                        <td class="px-6 py-4" onclick="event.stopPropagation()">
-                                            <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-navy-900 bg-white">
-                                                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                                <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
-                                                <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                                                <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                                            </select>
-                                        </td>
-                                        <td class="px-6 py-4" onclick="event.stopPropagation()">
-                                            <button onclick="deleteOrder('${o.id}')" class="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-1">
-                                                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Order Details Modal -->
-        <div id="order-details-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 transition-opacity" onclick="closeOrderDetails()">
-                    <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
-                </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-                <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg leading-6 font-bold text-gray-900" id="detail-order-id">Order Details</h3>
-                            <button onclick="closeOrderDetails()" class="text-gray-400 hover:text-gray-600">
-                                <i data-lucide="x" class="w-6 h-6"></i>
-                            </button>
-                        </div>
-                        <div id="order-details-content" class="space-y-4">
-                            <!-- Content injected here -->
+                const pendingOrders = store.orders.filter(o => o.status === 'pending').length;
+                
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <div class="min-h-screen bg-gray-100 pb-20">
+                        <header class="bg-navy-900 text-white shadow-lg">
+                            <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                                <h1 class="font-display font-bold text-xl">AN7 Admin Panel</h1>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-sm text-gray-300">Welcome, Admin</span>
+                                    <button onclick="logout()" class="text-sm bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20">Logout</button>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="max-w-7xl mx-auto px-4 py-8">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                                <div class="bg-white rounded-xl shadow-sm p-6">
+                                    <h3 class="text-gray-600 text-sm font-medium mb-2">Total Products</h3>
+                                    <p class="text-3xl font-bold text-navy-900">${store.products.length}</p>
+                                </div>
+                                <div class="bg-white rounded-xl shadow-sm p-6">
+                                    <h3 class="text-gray-600 text-sm font-medium mb-2">Total Orders</h3>
+                                    <p class="text-3xl font-bold text-navy-900">${store.orders.length}</p>
+                                </div>
+                                <div class="bg-white rounded-xl shadow-sm p-6">
+                                    <h3 class="text-gray-600 text-sm font-medium mb-2">Pending Orders</h3>
+                                    <p class="text-3xl font-bold text-orange-600">${pendingOrders}</p>
+                                </div>
+                                <div class="bg-white rounded-xl shadow-sm p-6">
+                                    <h3 class="text-gray-600 text-sm font-medium mb-2">Revenue (Active)</h3>
+                                    <p class="text-3xl font-bold text-green-600">Rs. ${totalRevenue.toLocaleString()}</p>
+                                    <p class="text-xs text-gray-500 mt-1">Excludes cancelled orders</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8">
+                                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                                    <h2 class="text-xl font-bold text-navy-900">Products</h2>
+                                    <button onclick="openProductModal()" class="bg-navy-900 text-white px-4 py-2 rounded-lg hover:bg-navy-800 font-medium">+ Add New Product</button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-gray-50 text-gray-600 text-sm">
+                                            <tr>
+                                                <th class="px-6 py-4">Product</th>
+                                                <th class="px-6 py-4">Category</th>
+                                                <th class="px-6 py-4">Price</th>
+                                                <th class="px-6 py-4">Stock</th>
+                                                <th class="px-6 py-4 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${store.products.length===0 ? '<tr><td colspan="5" class="px-6 py-8 text-center text-gray-500">No products found</td></tr>' : store.products.map(p => `
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="px-6 py-4">
+                                                        <div class="flex items-center gap-3">
+                                                            <img src="${p.image}" class="w-12 h-12 rounded-lg object-cover">
+                                                            <span class="font-medium text-navy-900">${p.name}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-6 py-4">
+                                                        <span class="px-2 py-1 bg-gray-100 rounded-full text-xs capitalize">${p.category || 'calculator'}</span>
+                                                    </td>
+                                                    <td class="px-6 py-4">Rs. ${p.price.toLocaleString()}</td>
+                                                    <td class="px-6 py-4">
+                                                        <span class="${p.stock < 5 ? 'text-red-600 font-bold' : ''}">${p.stock}</span>
+                                                    </td>
+                                                    <td class="px-6 py-4 text-right">
+                                                        <button onclick="openProductModal(${p.id})" class="text-blue-600 hover:text-blue-800 mr-4 font-medium">Edit</button>
+                                                        <button onclick="deleteProduct(${p.id})" class="text-red-600 hover:text-red-800 font-medium">Delete</button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                                    <h2 class="text-xl font-bold text-navy-900">Recent Orders</h2>
+                                    <span class="text-sm text-gray-500">Total: ${store.orders.length} orders</span>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left">
+                                        <thead class="bg-gray-50 text-gray-600 text-sm">
+                                            <tr>
+                                                <th class="px-6 py-4">Order ID</th>
+                                                <th class="px-6 py-4">Customer</th>
+                                                <th class="px-6 py-4">Phone</th>
+                                                <th class="px-6 py-4">Total</th>
+                                                <th class="px-6 py-4">Status</th>
+                                                <th class="px-6 py-4">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100">
+                                            ${store.orders.length === 0 ? '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No orders yet</td></tr>' : store.orders.slice().reverse().map(o => `
+                                                <tr class="hover:bg-blue-50 cursor-pointer transition-colors ${o.status === 'cancelled' ? 'bg-gray-50 opacity-60' : ''}" onclick="viewOrderDetails('${o.id}')">
+                                                    <td class="px-6 py-4 font-medium text-navy-900">#${o.id}</td>
+                                                    <td class="px-6 py-4 font-medium">${o.customer || 'N/A'}</td>
+                                                    <td class="px-6 py-4">${o.phone || 'N/A'}</td>
+                                                    <td class="px-6 py-4 font-bold">Rs. ${(parseFloat(o.total) || 0).toLocaleString()}</td>
+                                                    <td class="px-6 py-4" onclick="event.stopPropagation()">
+                                                        <select onchange="updateOrderStatus('${o.id}', this.value)" class="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-navy-900 bg-white">
+                                                            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                                            <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                                            <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                                            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="px-6 py-4" onclick="event.stopPropagation()">
+                                                        <button onclick="deleteOrder('${o.id}')" class="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-1">
+                                                            <i data-lucide="trash-2" class="w-4 h-4"></i> Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                        <button type="button" onclick="closeOrderDetails()" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-navy-900 text-base font-medium text-white hover:bg-navy-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
-                            Close
-                        </button>
+                    
+                    <!-- Order Details Modal -->
+                    <div id="order-details-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+                        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                            <div class="fixed inset-0 transition-opacity" onclick="closeOrderDetails()">
+                                <div class="absolute inset-0 bg-gray-900 opacity-75"></div>
+                            </div>
+                            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+                            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg leading-6 font-bold text-gray-900" id="detail-order-id">Order Details</h3>
+                                        <button onclick="closeOrderDetails()" class="text-gray-400 hover:text-gray-600">
+                                            <i data-lucide="x" class="w-6 h-6"></i>
+                                        </button>
+                                    </div>
+                                    <div id="order-details-content" class="space-y-4">
+                                        <!-- Content injected here -->
+                                    </div>
+                                </div>
+                                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                                    <button type="button" onclick="closeOrderDetails()" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-navy-900 text-base font-medium text-white hover:bg-navy-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    `;
-    return div;
-},
-
-
+                `;
+                return div;
+            },
 
             about() {
                 const div = document.createElement('div');
@@ -1165,7 +1191,7 @@
                         <div class="relative aspect-square bg-gray-100 overflow-hidden">
                             <img src="${product.image}" alt="${product.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500" onerror="this.src='https://via.placeholder.com/400'">
                             ${discount > 0 ? `<span class="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-${discount}%</span>` : ''}
-                            <span class="absolute top-4 right-4 bg-white/90 text-navy-900 text-xs font-bold px-3 py-1 rounded-full">${product.badge}</span>
+                            <span class="absolute top-4 right-4 bg-white/90 text-navy-900 text-xs font-bold px-3 py-1 rounded-full capitalize">${product.category || 'Product'}</span>
                         </div>
                         <div class="p-6">
                             <h3 class="font-bold text-navy-900 mb-2 line-clamp-2">${product.name}</h3>
@@ -1276,7 +1302,7 @@
         function handleSearch(query) {
             const resultsDiv = document.getElementById('search-results');
             if (!query.trim()) { resultsDiv.classList.add('hidden'); return; }
-            const filtered = store.products.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(query.toLowerCase()));
+            const filtered = store.products.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.description.toLowerCase().includes(searchQuery.toLowerCase()));
             if (filtered.length === 0) { resultsDiv.innerHTML = '<div class="p-4 text-gray-500 text-center">No products found</div>'; }
             else {
                 resultsDiv.innerHTML = filtered.slice(0,5).map(p=>`<div class="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0" onclick="router.navigate('product',{id:${p.id}});hideSearchResults();"><img src="${p.image}" class="w-12 h-12 rounded object-cover"><div class="flex-1"><p class="font-medium text-navy-900 text-sm">${p.name}</p><p class="text-xs text-gray-500">Rs. ${p.price.toLocaleString()}</p></div></div>`).join('') + (filtered.length > 5 ? `<div class="p-3 text-center text-sm text-navy-900 font-medium cursor-pointer hover:bg-gray-50" onclick="router.navigate('shop',{search:'${query}'});hideSearchResults();">View all ${filtered.length} results</div>` : '');
@@ -1395,6 +1421,15 @@
             const city = formData.get('city');
             const email = formData.get('email');
             
+            // Check stock availability first
+            for (const item of store.cart) {
+                const product = store.products.find(p => p.id === item.id);
+                if (!product || product.stock < item.quantity) {
+                    showToast(`Insufficient stock for ${item.name}. Only ${product?.stock || 0} available.`, 'error');
+                    return;
+                }
+            }
+            
             const orderData = {
                 id: Date.now().toString(),
                 userId: store.currentUser ? store.currentUser.uid : 'guest_' + Date.now(),
@@ -1413,12 +1448,27 @@
                 notified: false
             };
 
+            // Save order and reduce stock
             database.ref('orders/' + orderData.id).set(orderData)
                 .then(() => {
-                    // Send WhatsApp notification to admin if CallMeBot is configured
-                    if (CALLMEBOT_API_KEY) {
-                        sendWhatsAppNotification(orderData);
+                    // Reduce stock for each item
+                    const updates = {};
+                    orderData.items.forEach(item => {
+                        const product = store.products.find(p => p.id === item.id);
+                        if (product) {
+                            const newStock = product.stock - item.quantity;
+                            updates[`products/${item.id}/stock`] = newStock;
+                        }
+                    });
+                    
+                    // Update all stock values
+                    if (Object.keys(updates).length > 0) {
+                        return database.ref().update(updates);
                     }
+                })
+                .then(() => {
+                    // Send WhatsApp notification
+                    sendWhatsAppNotification(orderData);
                     
                     const itemsList = store.cart.map(i => `• ${i.name} x${i.quantity} = Rs.${(i.price*i.quantity).toLocaleString()}`).join('%0A');
                     const message = `*NEW ORDER #${orderData.id}*%0A%0A` +
@@ -1449,14 +1499,38 @@
 
         // Send WhatsApp notification via CallMeBot API
         function sendWhatsAppNotification(order) {
-            const message = `🔔 NEW ORDER!\n\nOrder #${order.id}\nCustomer: ${order.customer}\nPhone: ${order.phone}\nTotal: Rs. ${(parseFloat(order.total) || 0).toLocaleString()}\n\nView at: ${window.location.origin}`;
+            // Format items list for WhatsApp
+            const itemsList = order.items.map(i => `• ${i.name} x${i.quantity}`).join('\n');
             
-            // CallMeBot API endpoint
+            // Create formatted message
+            const message = `🔔 *NEW ORDER RECEIVED!*\n\n` +
+                           `*Order ID:* #${order.id}\n` +
+                           `*Customer:* ${order.customer}\n` +
+                           `*Phone:* ${order.phone}\n` +
+                           `*Address:* ${order.address}, ${order.city}\n` +
+                           `*Email:* ${order.email}\n\n` +
+                           `*Items Ordered:*\n${itemsList}\n\n` +
+                           `*Subtotal:* Rs. ${order.subtotal.toLocaleString()}\n` +
+                           `*Delivery:* ${order.delivery === 0 ? 'FREE' : 'Rs. ' + order.delivery.toLocaleString()}\n` +
+                           `*Total Amount:* Rs. ${(parseFloat(order.total) || 0).toLocaleString()}\n` +
+                           `*Payment Method:* ${order.paymentMethod.toUpperCase()}\n\n` +
+                           `_This is an automated notification from AN7 Store_`;
+            
+            // CallMeBot API endpoint (FREE)
             const url = `https://api.callmebot.com/whatsapp.php?phone=${ADMIN_WHATSAPP_NUMBER}&text=${encodeURIComponent(message)}&apikey=${CALLMEBOT_API_KEY}`;
             
+            // Send notification
             fetch(url)
-                .then(response => console.log('WhatsApp notification sent'))
-                .catch(error => console.error('Failed to send WhatsApp:', error));
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ WhatsApp notification sent successfully');
+                    } else {
+                        console.error('❌ CallMeBot API error:', response.status);
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Failed to send WhatsApp notification:', error);
+                });
         }
 
         function buyOnWhatsApp(productId) {
@@ -1488,6 +1562,7 @@
                 document.getElementById('edit-price').value = p.price;
                 document.getElementById('edit-stock').value = p.stock;
                 document.getElementById('edit-description').value = p.description || '';
+                document.getElementById('edit-category').value = p.category || 'calculator';
                 
                 if (p.image) {
                     document.getElementById('image-preview-main').src = p.image;
@@ -1525,7 +1600,7 @@
                 price: parseFloat(document.getElementById('edit-price').value),
                 stock: parseInt(document.getElementById('edit-stock').value),
                 description: document.getElementById('edit-description').value || '',
-                category: 'calculator',
+                category: document.getElementById('edit-category').value || 'calculator',
                 badge: id ? (store.products.find(p => p.id === parseInt(id))?.badge || 'New') : 'New',
                 updatedAt: new Date().toISOString()
             };
@@ -1556,13 +1631,53 @@
         }
 
         function updateOrderStatus(orderId, newStatus) {
+            const order = store.orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const oldStatus = order.status || 'pending';
+            
+            // Update status in Firebase
             database.ref('orders/' + orderId).update({ status: newStatus })
                 .then(() => {
                     showToast('Order status updated to ' + newStatus);
-                    // If cancelled, refresh to update revenue
-                    if (newStatus === 'cancelled' || newStatus === 'pending') {
-                        router.refresh();
+                    
+                    // Handle stock adjustments
+                    const updates = {};
+                    
+                    // If changing TO cancelled, restore stock
+                    if (newStatus === 'cancelled' && oldStatus !== 'cancelled') {
+                        order.items.forEach(item => {
+                            const product = store.products.find(p => p.id == item.id);
+                            if (product) {
+                                const newStock = product.stock + item.quantity;
+                                updates[`products/${item.id}/stock`] = newStock;
+                            }
+                        });
+                        showToast('Stock restored for cancelled order');
                     }
+                    
+                    // If changing FROM cancelled to active, reduce stock again
+                    if (oldStatus === 'cancelled' && newStatus !== 'cancelled') {
+                        order.items.forEach(item => {
+                            const product = store.products.find(p => p.id == item.id);
+                            if (product) {
+                                const newStock = product.stock - item.quantity;
+                                if (newStock < 0) {
+                                    showToast(`Warning: Insufficient stock for ${item.name}`, 'error');
+                                }
+                                updates[`products/${item.id}/stock`] = Math.max(0, newStock);
+                            }
+                        });
+                        showToast('Stock reduced for reactivated order');
+                    }
+                    
+                    // Apply stock updates
+                    if (Object.keys(updates).length > 0) {
+                        return database.ref().update(updates);
+                    }
+                })
+                .then(() => {
+                    router.refresh();
                 })
                 .catch(err => {
                     showToast('Error updating status: ' + err.message, 'error');
@@ -1570,10 +1685,36 @@
         }
 
         function deleteOrder(orderId) {
+            const order = store.orders.find(o => o.id === orderId);
+            if (!order) return;
+            
             if (confirm('Are you sure you want to delete this order? This cannot be undone.')) {
+                // If order is not cancelled, restore stock before deleting
+                const shouldRestoreStock = order.status !== 'cancelled';
+                
                 database.ref('orders/' + orderId).remove()
                     .then(() => {
+                        // Restore stock if order was active (not cancelled)
+                        if (shouldRestoreStock && order.items) {
+                            const updates = {};
+                            order.items.forEach(item => {
+                                const product = store.products.find(p => p.id == item.id);
+                                if (product) {
+                                    const newStock = product.stock + item.quantity;
+                                    updates[`products/${item.id}/stock`] = newStock;
+                                }
+                            });
+                            
+                            if (Object.keys(updates).length > 0) {
+                                return database.ref().update(updates);
+                            }
+                        }
+                    })
+                    .then(() => {
                         showToast('Order deleted successfully');
+                        if (shouldRestoreStock) {
+                            showToast('Stock restored');
+                        }
                         router.refresh();
                     })
                     .catch(err => showToast('Error deleting order: ' + err.message, 'error'));
@@ -1581,96 +1722,95 @@
         }
 
         function viewOrderDetails(orderId) {
-    const order = store.orders.find(o => o.id === orderId);
-    if (!order) return;
-    
-    const modal = document.getElementById('order-details-modal');
-    const content = document.getElementById('order-details-content');
-    const title = document.getElementById('detail-order-id');
-    
-    title.textContent = `Order #${order.id}`;
-    
-    const itemsHtml = order.items ? order.items.map(item => `
-        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <img src="${item.image}" class="w-12 h-12 rounded object-cover">
-            <div class="flex-1">
-                <p class="font-medium text-navy-900">${item.name}</p>
-                <p class="text-sm text-gray-600">Qty: ${item.quantity} × Rs. ${item.price.toLocaleString()}</p>
-            </div>
-            <div class="font-bold text-navy-900">
-                Rs. ${(item.price * item.quantity).toLocaleString()}
-            </div>
-        </div>
-    `).join('') : '<p class="text-gray-500">No items</p>';
-    
-    content.innerHTML = `
-        <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-                <span class="text-gray-500">Customer:</span>
-                <p class="font-medium text-gray-900">${order.customer || 'N/A'}</p>
-            </div>
-            <div>
-                <span class="text-gray-500">Phone:</span>
-                <p class="font-medium text-gray-900">${order.phone || 'N/A'}</p>
-            </div>
-            <div>
-                <span class="text-gray-500">Email:</span>
-                <p class="font-medium text-gray-900">${order.email || 'N/A'}</p>
-            </div>
-            <div>
-                <span class="text-gray-500">Date:</span>
-                <p class="font-medium text-gray-900">${new Date(order.date).toLocaleString()}</p>
-            </div>
-        </div>
-        
-        <div class="border-t pt-4">
-            <span class="text-gray-500 text-sm">Delivery Address:</span>
-            <p class="font-medium text-gray-900 mt-1">${order.address || 'N/A'}</p>
-            <p class="text-gray-600">${order.city || ''}</p>
-        </div>
-        
-        <div class="border-t pt-4">
-            <span class="text-gray-500 text-sm mb-2 block">Items Ordered:</span>
-            <div class="space-y-2">
-                ${itemsHtml}
-            </div>
-        </div>
-        
-        <div class="border-t pt-4 space-y-2">
-            <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Subtotal:</span>
-                <span class="font-medium">Rs. ${(order.subtotal || 0).toLocaleString()}</span>
-            </div>
-            <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Delivery:</span>
-                <span class="font-medium">${order.delivery === 0 ? 'FREE' : 'Rs. ' + (order.delivery || 300).toLocaleString()}</span>
-            </div>
-            <div class="flex justify-between text-lg font-bold text-navy-900 border-t pt-2">
-                <span>Total:</span>
-                <span>Rs. ${(parseFloat(order.total) || 0).toLocaleString()}</span>
-            </div>
-        </div>
-        
-        <div class="border-t pt-4 flex items-center justify-between">
-            <div>
-                <span class="text-gray-500 text-sm">Payment Method:</span>
-                <p class="font-medium text-gray-900">${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'}</p>
-            </div>
-            <div class="text-right">
-                <span class="text-gray-500 text-sm">Status:</span>
-                <span class="ml-2 px-3 py-1 rounded-full text-xs font-medium ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'processing' ? 'bg-blue-100 text-blue-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${order.status || 'pending'}</span>
-            </div>
-        </div>
-    `;
-    
-    modal.classList.remove('hidden');
-    lucide.createIcons();
-}
+            const order = store.orders.find(o => o.id === orderId);
+            if (!order) return;
+            
+            const modal = document.getElementById('order-details-modal');
+            const content = document.getElementById('order-details-content');
+            const title = document.getElementById('detail-order-id');
+            
+            title.textContent = `Order #${order.id}`;
+            
+            const itemsHtml = order.items ? order.items.map(item => `
+                <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <img src="${item.image}" class="w-12 h-12 rounded object-cover">
+                    <div class="flex-1">
+                        <p class="font-medium text-navy-900">${item.name}</p>
+                        <p class="text-sm text-gray-600">Qty: ${item.quantity} × Rs. ${item.price.toLocaleString()}</p>
+                    </div>
+                    <div class="font-bold text-navy-900">
+                        Rs. ${(item.price * item.quantity).toLocaleString()}
+                    </div>
+                </div>
+            `).join('') : '<p class="text-gray-500">No items</p>';
+            
+            content.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-500">Customer:</span>
+                        <p class="font-medium text-gray-900">${order.customer || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Phone:</span>
+                        <p class="font-medium text-gray-900">${order.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Email:</span>
+                        <p class="font-medium text-gray-900">${order.email || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Date:</span>
+                        <p class="font-medium text-gray-900">${new Date(order.date).toLocaleString()}</p>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <span class="text-gray-500 text-sm">Delivery Address:</span>
+                    <p class="font-medium text-gray-900 mt-1">${order.address || 'N/A'}</p>
+                    <p class="text-gray-600">${order.city || ''}</p>
+                </div>
+                
+                <div class="border-t pt-4">
+                    <span class="text-gray-500 text-sm mb-2 block">Items Ordered:</span>
+                    <div class="space-y-2">
+                        ${itemsHtml}
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Subtotal:</span>
+                        <span class="font-medium">Rs. ${(order.subtotal || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Delivery:</span>
+                        <span class="font-medium">${order.delivery === 0 ? 'FREE' : 'Rs. ' + (order.delivery || 300).toLocaleString()}</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold text-navy-900 border-t pt-2">
+                        <span>Total:</span>
+                        <span>Rs. ${(parseFloat(order.total) || 0).toLocaleString()}</span>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-gray-500 text-sm">Payment Method:</span>
+                        <p class="font-medium text-gray-900">${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'N/A'}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-gray-500 text-sm">Status:</span>
+                        <span class="ml-2 px-3 py-1 rounded-full text-xs font-medium ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'processing' ? 'bg-blue-100 text-blue-800' : order.status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${order.status || 'pending'}</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
 
-function closeOrderDetails() {
-    document.getElementById('order-details-modal').classList.add('hidden');
-}
-
+        function closeOrderDetails() {
+            document.getElementById('order-details-modal').classList.add('hidden');
+        }
 
         function deleteProduct(id) {
             if (confirm('Delete this product?')) {
@@ -1719,30 +1859,6 @@ function closeOrderDetails() {
                 if (window.scrollY > 50) nav.classList.add('shadow-md'); else nav.classList.remove('shadow-md');
             });
         });
-        function viewOrderDetails(orderId) {
-    const order = store.orders.find(o => o.id === orderId);
-    if (!order) return;
-    
-    const itemsList = order.items.map(i => `• ${i.name} x${i.quantity} (Rs. ${(i.price * i.quantity).toLocaleString()})`).join('\n');
-    
-    alert(`Order #${order.id}
-    
-Customer: ${order.customer}
-Phone: ${order.phone}
-Email: ${order.email}
-Address: ${order.address}, ${order.city}
-
-Items Ordered:
-${itemsList}
-
-Subtotal: Rs. ${order.subtotal?.toLocaleString() || 0}
-Delivery: ${order.delivery === 0 ? 'FREE' : 'Rs. ' + order.delivery}
-Total: Rs. ${(parseFloat(order.total) || 0).toLocaleString()}
-
-Payment: ${order.paymentMethod?.toUpperCase()}
-Status: ${order.status || 'pending'}`);
-}
-
     </script>
 </body>
 </html>
