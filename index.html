@@ -498,50 +498,126 @@
         }
 
         const router = {
-            currentRoute: 'home',
-            params: {},
-            navigate(route, params = {}, force = false) {
-                if (this.currentRoute === route && !force && JSON.stringify(this.params) === JSON.stringify(params)) return;
-                
-                if (route === 'admin' && !store.isAdmin) {
-                    if (!store.authInitialized) {
-                        setTimeout(() => this.navigate(route, params), 500);
-                        return;
-                    }
-                    if (!store.isAdmin) {
-                        this.navigate('login');
-                        return;
-                    }
-                }
-                
-                this.currentRoute = route;
-                this.params = params;
-                window.scrollTo(0, 0);
-                this.render();
-            },
-            refresh() {
-                this.render();
-            },
-            render() {
-                const app = document.getElementById('app');
-                app.innerHTML = '';
-                
-                switch(this.currentRoute) {
-                    case 'home': app.appendChild(views.home()); break;
-                    case 'shop': app.appendChild(views.shop(this.params)); break;
-                    case 'product': app.appendChild(views.product(this.params.id)); break;
-                    case 'checkout': app.appendChild(views.checkout()); break;
-                    case 'about': app.appendChild(views.about()); break;
-                    case 'admin': app.appendChild(views.admin()); break;
-                    case 'login': app.appendChild(views.login()); break;
-                    case 'register': app.appendChild(views.register()); break;
-                    case 'profile': app.appendChild(views.profile()); break;
-                    case 'orders': app.appendChild(views.orders()); break;
-                    default: app.appendChild(views.home());
-                }
-                lucide.createIcons();
+    currentRoute: 'home',
+    params: {},
+    isNavigating: false,
+    
+    navigate(route, params = {}, force = false) {
+        // Prevent recursive navigation
+        if (this.isNavigating) return;
+        this.isNavigating = true;
+        
+        setTimeout(() => { this.isNavigating = false; }, 100);
+        
+        // Check auth for admin
+        if (route === 'admin' && !store.isAdmin) {
+            if (!store.authInitialized) {
+                setTimeout(() => this.navigate(route, params), 500);
+                return;
             }
-        };
+            if (!store.isAdmin) {
+                this.navigate('login');
+                return;
+            }
+        }
+        
+        // Build hash URL
+        let hash = '#/' + route;
+        if (params && Object.keys(params).length > 0) {
+            const query = Object.entries(params)
+                .map(([key, val]) => `${key}=${encodeURIComponent(val)}`)
+                .join('&');
+            hash += '?' + query;
+        }
+        
+        // Only change if different
+        if (window.location.hash !== hash) {
+            window.location.hash = hash;
+        } else if (force) {
+            this.render();
+        }
+    },
+    
+    handleHashChange() {
+        this.parseHash();
+    },
+    
+    parseHash() {
+        const hash = window.location.hash.slice(1) || '/home';
+        const [path, queryString] = hash.split('?');
+        const route = path.replace(/^\/+/, '') || 'home';
+        
+        const params = {};
+        if (queryString) {
+            queryString.split('&').forEach(pair => {
+                const [key, val] = pair.split('=');
+                if (key) params[key] = decodeURIComponent(val || '');
+            });
+        }
+        
+        // Update and render
+        if (this.currentRoute !== route || JSON.stringify(this.params) !== JSON.stringify(params)) {
+            this.currentRoute = route;
+            this.params = params;
+            window.scrollTo(0, 0);
+            this.render();
+        }
+    },
+    
+    refresh() {
+        this.render();
+    },
+    
+    render() {
+        const app = document.getElementById('app');
+        if (!app) return;
+        
+        app.innerHTML = '';
+        
+        switch(this.currentRoute) {
+            case 'home': app.appendChild(views.home()); break;
+            case 'shop': app.appendChild(views.shop(this.params)); break;
+            case 'product': app.appendChild(views.product(this.params.id)); break;
+            case 'checkout': app.appendChild(views.checkout()); break;
+            case 'about': app.appendChild(views.about()); break;
+            case 'admin': app.appendChild(views.admin()); break;
+            case 'login': app.appendChild(views.login()); break;
+            case 'register': app.appendChild(views.register()); break;
+            case 'profile': app.appendChild(views.profile()); break;
+            case 'orders': app.appendChild(views.orders()); break;
+            default: app.appendChild(views.home());
+        }
+        lucide.createIcons();
+    }
+};
+
+// CRITICAL: Initialize router AFTER DOM is ready
+window.addEventListener('DOMContentLoaded', () => {
+    // Setup Firebase listeners first
+    setupListeners();
+    
+    // Handle browser back/forward buttons
+    window.addEventListener('hashchange', (e) => {
+        console.log('Hash changed:', window.location.hash); // Debug
+        router.handleHashChange();
+    });
+    
+    // Handle initial load
+    if (window.location.hash && window.location.hash !== '#/') {
+        router.parseHash();
+    } else {
+        router.navigate('home');
+    }
+    
+    // Navbar scroll effect
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        if (nav) {
+            if (window.scrollY > 50) nav.classList.add('shadow-md');
+            else nav.classList.remove('shadow-md');
+        }
+    });
+});
 
         const views = {
            home() {
