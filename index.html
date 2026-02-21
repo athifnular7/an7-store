@@ -1803,6 +1803,78 @@
             }
         });
     });
+
+    function openProductModal(productId = null) {
+    const modal = document.getElementById('product-modal');
+    const form = document.getElementById('product-form');
+    const title = document.getElementById('modal-title');
+    
+    // Reset form
+    form.reset();
+    document.getElementById('edit-product-id').value = '';
+    
+    // Reset all image previews
+    document.getElementById('image-preview-main').classList.add('hidden');
+    document.getElementById('upload-placeholder-main').classList.remove('hidden');
+    document.getElementById('edit-image-main').value = '';
+    
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById(`image-preview-add-${i}`).classList.add('hidden');
+        document.getElementById(`upload-placeholder-add-${i}`).classList.remove('hidden');
+        document.getElementById(`edit-image-add-${i}`).value = '';
+    }
+    
+    if (productId) {
+        // Edit mode
+        const product = store.products.find(p => p.id == productId);
+        if (!product) {
+            showToast('Product not found', 'error');
+            return;
+        }
+        
+        title.textContent = 'Edit Product';
+        document.getElementById('edit-product-id').value = product.id;
+        document.getElementById('edit-name').value = product.name || '';
+        document.getElementById('edit-price').value = product.price || '';
+        document.getElementById('edit-stock').value = product.stock || 0;
+        document.getElementById('edit-category').value = product.category || 'calculator';
+        document.getElementById('edit-description').value = product.description || '';
+        
+        // Load main image if exists
+        if (product.image) {
+            document.getElementById('image-preview-main').src = product.image;
+            document.getElementById('image-preview-main').classList.remove('hidden');
+            document.getElementById('upload-placeholder-main').classList.add('hidden');
+            document.getElementById('edit-image-main').value = product.image;
+        }
+        
+        // Load additional images if exist
+        if (product.images && Array.isArray(product.images)) {
+            product.images.forEach((img, idx) => {
+                if (idx < 4 && img) {
+                    const preview = document.getElementById(`image-preview-add-${idx + 1}`);
+                    const placeholder = document.getElementById(`upload-placeholder-add-${idx + 1}`);
+                    const input = document.getElementById(`edit-image-add-${idx + 1}`);
+                    if (preview && img) {
+                        preview.src = img;
+                        preview.classList.remove('hidden');
+                        placeholder.classList.add('hidden');
+                        input.value = img;
+                    }
+                }
+            });
+        }
+    } else {
+        // Add new mode
+        title.textContent = 'Add New Product';
+    }
+    
+    modal.classList.remove('hidden');
+    lucide.createIcons();
+}
+
+
+    
 </script>
 
 
